@@ -51,20 +51,20 @@ public class HistoryScreen {
         TableColumn<ActivityRecord, Double> weightColumn = new TableColumn<>("Weight (kg)");
         weightColumn.setCellValueFactory(new PropertyValueFactory<>("weight"));
 
-        TableColumn<ActivityRecord, String> timestampColumn = new TableColumn<>("Timestamp");
+        TableColumn<ActivityRecord, Long> timestampColumn = new TableColumn<>("Timestamp");
         timestampColumn.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
 
         // Format timestamp to readable date
         timestampColumn.setCellFactory(col -> {
-            return new javafx.scene.control.TableCell<ActivityRecord, String>() {
+            return new javafx.scene.control.TableCell<ActivityRecord, Long>() {
                 @Override
-                protected void updateItem(String item, boolean empty) {
+                protected void updateItem(Long item, boolean empty) {
                     super.updateItem(item, empty);
-                    if (empty) {
+                    if (empty || item == null) {
                         setText(null);
                     } else {
                         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                        setText(sdf.format(getTableRow().getItem().getTimestamp()));
+                        setText(sdf.format(item)); // Format the Long timestamp as a String
                     }
                 }
             };

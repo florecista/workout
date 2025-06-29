@@ -4,7 +4,6 @@ import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import info.matthewryan.workoutlogger.model.ActivityRecord;
 import info.matthewryan.workoutlogger.persistence.ActivityDao;
-import info.matthewryan.workoutlogger.ApplicationSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,12 +15,10 @@ public class CsvImporter {
     private static final Logger logger = LoggerFactory.getLogger(CsvImporter.class);
 
     private final ActivityDao dao;
-    private final ApplicationSettings settings;  // Add ApplicationSettings
 
     // Constructor to allow dependency injection for easier testing
-    public CsvImporter(ActivityDao dao, ApplicationSettings settings) {
+    public CsvImporter(ActivityDao dao) {
         this.dao = dao;
-        this.settings = settings;  // Inject ApplicationSettings
     }
 
     // Method to import CSV data from a file
