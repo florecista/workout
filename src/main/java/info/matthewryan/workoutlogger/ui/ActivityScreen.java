@@ -1,25 +1,21 @@
 package info.matthewryan.workoutlogger.ui;
 
-import info.matthewryan.workoutlogger.model.ActivityRecord;
 import info.matthewryan.workoutlogger.persistence.ActivityDao;
 import info.matthewryan.workoutlogger.persistence.ExerciseDao;
-import javafx.scene.Scene;
+import info.matthewryan.workoutlogger.model.ActivityRecord;
+
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
-import javafx.stage.Stage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 
 public class ActivityScreen {
-
-    // Create a logger instance
-    private static final Logger logger = LoggerFactory.getLogger(ActivityScreen.class);
 
     private ActivityDao activityDao;
     private ExerciseDao exerciseDao;
@@ -34,20 +30,61 @@ public class ActivityScreen {
 
     // Implement getRoot to return the screen's root layout
     public BorderPane getRoot() {
+        // Create the main BorderPane for ActivityScreen layout
+        BorderPane root = new BorderPane();
 
-        logger.info("Creating Activity Screen components");
+        // Create the graphPanel for the top part (BorderLayout.NORTH)
+        BorderPane graphPanel = createGraphPanel();
+
+        // Create the formPanel for the bottom part (BorderLayout.SOUTH)
+        BorderPane formPanel = createFormPanel();
+
+        // Set the graphPanel at the top (BorderLayout.NORTH) and the formPanel at the bottom (BorderLayout.SOUTH)
+        root.setTop(graphPanel);
+        root.setBottom(formPanel);
+
+        // Set a fixed height for the panels (50% each)
+        graphPanel.prefHeightProperty().bind(root.heightProperty().multiply(0.5));  // 50% of screen height
+        formPanel.prefHeightProperty().bind(root.heightProperty().multiply(0.5));   // 50% of screen height
+
+        return root;  // Return the root layout (BorderPane)
+    }
+
+    // Method to create the graph panel (at BorderLayout.NORTH)
+    private BorderPane createGraphPanel() {
+        BorderPane graphPanel = new BorderPane();
+        graphPanel.setStyle("-fx-background-color: lightgray;");  // Example style for graph panel
+
+        // Add your graph visualization component here
+        // This is where your graph components would go
+        // For now, we'll add a simple text placeholder
+        Text graphPlaceholder = new Text("Graph will go here.");
+        graphPanel.setCenter(graphPlaceholder);
+
+        return graphPanel;
+    }
+
+    // Method to create the form panel (at BorderLayout.SOUTH)
+    private BorderPane createFormPanel() {
+        BorderPane formPanel = new BorderPane();
+        formPanel.setStyle("-fx-background-color: white;");  // Example style for form panel
 
         // Create the form elements
         Text exerciseLabel = new Text("Exercise:");
         ComboBox<String> exerciseComboBox = new ComboBox<>();
 
-        // Fetch exercises from the database using ExerciseDao
-        List<String> exercises = exerciseDao.getAllExercises(); // Get all exercises from the database
-        exerciseComboBox.getItems().addAll(exercises); // Add the exercises to the ComboBox
+        // Fetch exercises from the database and add them to the ComboBox
+        List<String> exercises = exerciseDao.getAllExercises();  // Get exercises from the database
 
-        // Set the default selected exercise (optional, if you have a default exercise)
+        // Sort the list alphabetically
+        Collections.sort(exercises);  // This will sort the exercises in ascending alphabetical order
+
+        // Populate ComboBox with sorted exercises
+        exerciseComboBox.getItems().addAll(exercises);
+
+        // Optionally, select the first exercise by default
         if (!exercises.isEmpty()) {
-            exerciseComboBox.getSelectionModel().selectFirst();
+            exerciseComboBox.getSelectionModel().selectFirst();  // Select the first exercise
         }
 
         Text weightLabel = new Text("Weight (kg):");
@@ -103,9 +140,6 @@ public class ActivityScreen {
         grid.setVgap(10);
         grid.setHgap(10);
 
-        // Add padding to the GridPane
-        grid.setPadding(new javafx.geometry.Insets(20));  // Set padding for the whole grid
-
         // Add labels and components to the GridPane
         grid.add(exerciseLabel, 0, 0);
         grid.add(exerciseComboBox, 1, 0);
@@ -120,13 +154,15 @@ public class ActivityScreen {
         grid.add(saveButton, 0, 3);
         grid.add(clearButton, 1, 3);
 
-        // Set up the root layout and add the form components
-        BorderPane root = new BorderPane();
-        root.setCenter(grid);
+        // Ensure the GridPane's content is laid out properly
+        formPanel.setCenter(grid);
 
-        // Create the toolbar and set it at the bottom
-        root.setBottom(toolBar);
+        // Add some padding to the formPanel
+        formPanel.setPadding(new javafx.geometry.Insets(10));
 
-        return root;  // Return the root layout (BorderPane)
+        // Optional: Add some margin to the form panel (if needed)
+        formPanel.setMinHeight(Region.USE_PREF_SIZE);
+
+        return formPanel;
     }
 }
