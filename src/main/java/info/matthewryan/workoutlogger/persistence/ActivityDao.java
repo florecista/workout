@@ -100,4 +100,29 @@ public class ActivityDao {
         }
         return bestRecord;
     }
+
+    // Retrieve all activities from the database, ordered by timestamp descending
+    public List<ActivityRecord> getAllActivitiesOrderedByTimestamp() {
+        List<ActivityRecord> activities = new ArrayList<>();
+        String query = "SELECT * FROM activity_records ORDER BY timestamp DESC";  // Replace 'activities' with your table name
+
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                String activity = rs.getString("activity");
+                int reps = rs.getInt("reps");
+                double weight = rs.getDouble("weight");
+                long timestamp = rs.getLong("timestamp");
+
+                // Create ActivityRecord object and add to the list
+                ActivityRecord record = new ActivityRecord(activity, reps, weight, timestamp);
+                activities.add(record);
+            }
+        } catch (SQLException e) {
+            logger.info(e.getMessage());
+        }
+
+        return activities;
+    }
+
 }
