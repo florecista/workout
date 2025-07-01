@@ -23,6 +23,18 @@ public class ScreenStartup extends Application {
 
     private static final Logger logger = LoggerFactory.getLogger(ScreenStartup.class);
 
+    private final String[] defaultExercises = {
+            "Abdominal Twists", "Abmat Crunches", "Back Extension", "Back Squat",
+            "Barbell Chest Squat", "Bench Press", "Bicep Curl", "Bulgarian Split Squat",
+            "Cable Side Deltoid Pulls", "Deadlift", "Dumbbell Bench Press", "Dumbbell Chin Row",
+            "Dumbbell Side Raises", "Dumbbell Shoulder Press", "Lat Pulldown", "Leg Press",
+            "Parallel Dips", "Pull-Up", "Push-Up", "Seated Row", "Tricep Extension"
+    };
+
+    private final String[] volumeGroups = {
+            "Arms", "Back", "Biceps", "Chest", "Hamstrings", "Legs", "Quads", "Triceps"
+    };
+
     private ActivityDao activityDao;
     private ExerciseDao exerciseDao;
     private CustomToolBar toolBar;
@@ -51,6 +63,9 @@ public class ScreenStartup extends Application {
         // Create tables if they do not exist
         activityDao.createActivityTable();
         exerciseDao.createExerciseTable();
+        exerciseDao.createVolumeGroupTable(); // Create Volume Group table
+        preloadVolumeGroups(); // Preload volume groups
+        preloadDefaultExercises(); // Preload default exercises
 
         csvImporter = new CsvImporter(activityDao);
 
@@ -131,7 +146,7 @@ public class ScreenStartup extends Application {
                     try {
                         // Assuming CsvImporter processes each line of the CSV
                         csvImporter.importCsvLine(line);  // Process the line
-                        logger.info("Processed line {}: {}", lineCounter, line);
+                        //logger.info("Processed line {}: {}", lineCounter, line);
                     } catch (Exception e) {
                         logger.error("Error processing line {}: {}", lineCounter, e.getMessage());
                         break;  // Stop processing on the first exception
@@ -141,6 +156,19 @@ public class ScreenStartup extends Application {
         } catch (IOException e) {
             // Handle exceptions for file reading
             logger.error("Error reading the file: {}", e.getMessage());
+        }
+    }
+
+    private void preloadVolumeGroups() {
+        // Preload the volume group reference data
+        for (String group : volumeGroups) {
+            exerciseDao.insertVolumeGroup(group);
+        }
+    }
+
+    private void preloadDefaultExercises() {
+        for (String exercise : defaultExercises) {
+            exerciseDao.insertExercise(exercise);
         }
     }
 }

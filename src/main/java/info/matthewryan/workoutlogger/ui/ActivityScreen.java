@@ -4,6 +4,8 @@ import info.matthewryan.workoutlogger.persistence.ActivityDao;
 import info.matthewryan.workoutlogger.persistence.ExerciseDao;
 import info.matthewryan.workoutlogger.model.ActivityRecord;
 
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
@@ -20,6 +22,8 @@ public class ActivityScreen {
     private ActivityDao activityDao;
     private ExerciseDao exerciseDao;
     private CustomToolBar toolBar;
+
+    private LineChart<Number, Number> lineChart;
 
     // Constructor accepts ActivityDao, ExerciseDao, and ToolBar
     public ActivityScreen(ActivityDao activityDao, ExerciseDao exerciseDao, CustomToolBar toolBar) {
@@ -56,12 +60,28 @@ public class ActivityScreen {
         graphPanel.setStyle("-fx-background-color: lightgray;");  // Example style for graph panel
 
         // Add your graph visualization component here
-        // This is where your graph components would go
-        // For now, we'll add a simple text placeholder
-        Text graphPlaceholder = new Text("Graph will go here.");
-        graphPanel.setCenter(graphPlaceholder);
+        lineChart = createGraphChart();  // Now we store the reference to the LineChart
+
+        // Add chart to the graph panel
+        graphPanel.setCenter(lineChart);
 
         return graphPanel;
+    }
+
+    // Create a LineChart to display the volume data
+    private LineChart<Number, Number> createGraphChart() {
+        // X Axis represents the date
+        NumberAxis xAxis = new NumberAxis();
+        xAxis.setLabel("Date");
+
+        // Y Axis represents the total volume (weight)
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Total Volume (kg)");
+
+        LineChart<Number, Number> lineChart = new LineChart<>(xAxis, yAxis);
+        lineChart.setTitle("Exercise Volume by Date");
+
+        return lineChart;
     }
 
     // Method to create the form panel (at BorderLayout.SOUTH)
@@ -72,20 +92,14 @@ public class ActivityScreen {
         // Create the form elements
         Text exerciseLabel = new Text("Exercise:");
         ComboBox<String> exerciseComboBox = new ComboBox<>();
-
-        // Fetch exercises from the database and add them to the ComboBox
         List<String> exercises = exerciseDao.getAllExercises();  // Get exercises from the database
 
-        // Sort the list alphabetically
         Collections.sort(exercises);  // This will sort the exercises in ascending alphabetical order
 
-        // Populate ComboBox with sorted exercises
+        exerciseComboBox.getItems().add("Select");  // Add "Select" as the first option
         exerciseComboBox.getItems().addAll(exercises);
 
-        // Optionally, select the first exercise by default
-        if (!exercises.isEmpty()) {
-            exerciseComboBox.getSelectionModel().selectFirst();  // Select the first exercise
-        }
+        exerciseComboBox.getSelectionModel().select("Select");  // Select the "Select" option by default
 
         Text weightLabel = new Text("Weight (kg):");
         TextField weightField = new TextField();
