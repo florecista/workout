@@ -45,7 +45,7 @@ public class ActivityDao {
             pstmt.setDouble(3, activityRecord.getWeight());
             pstmt.setLong(4, activityRecord.getTimestamp());
             pstmt.executeUpdate();
-            logger.info("Inserted activity: {}", activityRecord);
+            //logger.info("Inserted activity: {}", activityRecord);
         } catch (SQLException e) {
             logger.error("Error inserting activity: {}", e.getMessage(), e);
         }
@@ -120,6 +120,31 @@ public class ActivityDao {
             }
         } catch (SQLException e) {
             logger.info(e.getMessage());
+        }
+
+        return activities;
+    }
+
+    public List<ActivityRecord> getActivityDataByExercise(String exercise) {
+        List<ActivityRecord> activities = new ArrayList<>();
+        String query = "SELECT * FROM activity_records WHERE activity = ? ORDER BY timestamp DESC";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, exercise);  // Set the exercise parameter
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    String activity = rs.getString("activity");
+                    int reps = rs.getInt("reps");
+                    double weight = rs.getDouble("weight");
+                    long timestamp = rs.getLong("timestamp");
+
+                    // Create ActivityRecord object and add it to the list
+                    ActivityRecord record = new ActivityRecord(activity, reps, weight, timestamp);
+                    activities.add(record);
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error retrieving activity data for exercise {}: {}", exercise, e.getMessage(), e);
         }
 
         return activities;
