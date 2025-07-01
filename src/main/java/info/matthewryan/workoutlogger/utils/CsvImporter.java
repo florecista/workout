@@ -64,7 +64,7 @@ public class CsvImporter {
 
             // Insert into database using DAO
             dao.insertActivity(record);
-            logger.info("Inserted record: {}", record);
+            //logger.info("Inserted record: {}", record);
 
         } catch (Exception e) {
             logger.error("Error processing CSV line: {}", e.getMessage(), e);
