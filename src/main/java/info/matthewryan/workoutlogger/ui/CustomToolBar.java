@@ -14,11 +14,13 @@ public class CustomToolBar extends ToolBar {
 
     private Button btnRoutines;
     private Button btnHistory;
+    private Button btnExercises;  // New button for Exercises
 
     public CustomToolBar(Stage primaryStage, ActivityDao activityDao, ExerciseDao exerciseDao) {
         super();
         btnRoutines = new Button("Routines");
         btnHistory = new Button("History");
+        btnExercises = new Button("Exercises");  // Initialize the Exercises button
 
         // Routines button action
         btnRoutines.setOnAction(e -> {
@@ -30,7 +32,12 @@ public class CustomToolBar extends ToolBar {
             // This will be handled by ScreenStartup
         });
 
-        getItems().addAll(btnRoutines, btnHistory);
+        // Exercises button action
+        btnExercises.setOnAction(e -> {
+            // This will be handled by ScreenStartup
+        });
+
+        getItems().addAll(btnRoutines, btnHistory, btnExercises);  // Add the new button to the toolbar
     }
 
     // Setters to attach actions in ScreenStartup
@@ -40,5 +47,9 @@ public class CustomToolBar extends ToolBar {
 
     public void setOnHistoryAction(Runnable action) {
         btnHistory.setOnAction(e -> action.run());
+    }
+
+    public void setOnExercisesAction(Runnable action) {
+        btnExercises.setOnAction(e -> action.run());
     }
 }

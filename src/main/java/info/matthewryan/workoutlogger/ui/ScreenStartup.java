@@ -42,6 +42,7 @@ public class ScreenStartup extends Application {
     private StartScreen startScreen;
     private ActivityScreen activityScreen;
     private HistoryScreen historyScreen;
+    private ExercisesScreen exercisesScreen;
 
     private CsvImporter csvImporter;
 
@@ -82,6 +83,7 @@ public class ScreenStartup extends Application {
         activityScreen = new ActivityScreen(activityDao, exerciseDao, toolBar);
         startScreen = new StartScreen(activityDao, exerciseDao, toolBar, this);
         historyScreen = new HistoryScreen(activityDao, exerciseDao, toolBar);
+        exercisesScreen = new ExercisesScreen(exerciseDao);
 
         // Set up a BorderPane to hold all the screens (Deck of screens)
         BorderPane deck = new BorderPane();
@@ -90,6 +92,7 @@ public class ScreenStartup extends Application {
         // ToolBar Actions
         toolBar.setOnRoutinesAction(() -> showStartScreen(deck));
         toolBar.setOnHistoryAction(() -> showHistoryScreen(deck));
+        toolBar.setOnExercisesAction(() -> showExercisesScreen());
 
         // Set up the layout with the toolbar and the current screen
         deck.setBottom(toolBar); // Attach the toolbar to the bottom of BorderPane
@@ -115,6 +118,12 @@ public class ScreenStartup extends Application {
     // Show the HistoryScreen (by removing others and showing HistoryScreen)
     private void showHistoryScreen(BorderPane deck) {
         deck.setCenter(historyScreen.getRoot());
+        deck.setBottom(toolBar);
+    }
+
+    private void showExercisesScreen() {
+        BorderPane deck = (BorderPane) toolBar.getScene().getRoot();
+        deck.setCenter(exercisesScreen.getRoot());
         deck.setBottom(toolBar);
     }
 
