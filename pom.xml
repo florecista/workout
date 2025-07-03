@@ -74,6 +74,12 @@
             <artifactId>opencsv</artifactId>
             <version>5.6</version>
         </dependency>
+
+        <dependency>
+            <groupId>io.fair-acc</groupId>
+            <artifactId>chartfx</artifactId>
+            <version>11.3.1</version>
+        </dependency>
     </dependencies>
 
     <build>

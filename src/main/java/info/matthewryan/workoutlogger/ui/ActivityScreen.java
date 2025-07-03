@@ -4,24 +4,30 @@ import info.matthewryan.workoutlogger.persistence.ActivityDao;
 import info.matthewryan.workoutlogger.persistence.ExerciseDao;
 import info.matthewryan.workoutlogger.model.ActivityRecord;
 
-import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextField;
+import io.fair_acc.chartfx.XYChart;
+import io.fair_acc.chartfx.axes.spi.DefaultNumericAxis;
+import io.fair_acc.chartfx.plugins.DataPointTooltip;
+import io.fair_acc.chartfx.plugins.Zoomer;
+import io.fair_acc.dataset.spi.DefaultErrorDataSet;
+
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Button;
+import javafx.scene.layout.Region;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+
+import javafx.util.StringConverter;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ActivityScreen {
 
@@ -30,19 +36,18 @@ public class ActivityScreen {
     private ActivityDao activityDao;
     private ExerciseDao exerciseDao;
     private CustomToolBar toolBar;
-    private NumberAxis xAxis; // X-axis for the graph
-    private NumberAxis yAxis; // Y-axis for the graph
 
     private BorderPane graphPanel;  // Declare the graph panel here
-    private LineChart<Number, Number> lineChart;
+    private XYChart chart;  // Use Chart FX's XYChart
+
+    // Declare xAxis1 globally so we can set it in the updateGraphForExercise method
+    private DefaultNumericAxis xAxis1;
 
     // Constructor accepts ActivityDao, ExerciseDao, and ToolBar
     public ActivityScreen(ActivityDao activityDao, ExerciseDao exerciseDao, CustomToolBar toolBar) {
         this.activityDao = activityDao;
         this.exerciseDao = exerciseDao;
         this.toolBar = toolBar;
-        this.xAxis = new NumberAxis();
-        this.yAxis = new NumberAxis();
     }
 
     // Implement getRoot to return the screen's root layout
@@ -72,8 +77,8 @@ public class ActivityScreen {
         BorderPane graphPanel = new BorderPane();
         graphPanel.setStyle("-fx-background-color: lightgray;");  // Example style for graph panel
 
-        // Initialize the LineChart and set it to the center of graphPanel
-        lineChart = createGraphChart();  // Now we store the reference to the LineChart
+        // Initialize the Chart FX XYChart and set it to the center of graphPanel
+        chart = createGraphChart();  // Now we store the reference to the XYChart
 
         // Add the initial placeholder text
         Text graphPlaceholderText = new Text("Select an Exercise to view data.");
@@ -82,32 +87,26 @@ public class ActivityScreen {
         return graphPanel;
     }
 
-    // Create a LineChart to display the volume data
-    private LineChart<Number, Number> createGraphChart() {
-        // X Axis represents the date
-        NumberAxis xAxis = new NumberAxis();
-        xAxis.setLabel("Date");
+    // Create a Chart FX XYChart to display the volume data
+    private XYChart createGraphChart() {
 
-        // Convert timestamps to readable dates
-        xAxis.setTickLabelFormatter(new javafx.scene.chart.NumberAxis.DefaultFormatter(xAxis) {
-            @Override
-            public String toString(Number object) {
-                // Convert the timestamp to a date
-                long timestamp = object.longValue();
-                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
-                return sdf.format(new java.util.Date(timestamp));
-            }
-        });
+        // Initialize the x-axis globally so we can modify it later
+        xAxis1 = new DefaultNumericAxis("Date", "iso");
+        xAxis1.setOverlapPolicy(io.fair_acc.chartfx.axes.AxisLabelOverlapPolicy.SKIP_ALT);
+        xAxis1.setAutoRangeRounding(false);
+        xAxis1.setTimeAxis(true);
+        DefaultNumericAxis yAxis1 = new DefaultNumericAxis("Total Volume", "kg");
 
-        // Y Axis represents the total volume (weight)
-        NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Total Volume (kg)");
+        xAxis1.set("Date", "iso");
 
-        // Create the LineChart
-        LineChart<Number, Number> lineChart = new LineChart<>(xAxis, yAxis);
-        lineChart.setTitle("Exercise Volume by Date");
+        XYChart chart = new XYChart(xAxis1, yAxis1);
+        chart.setTitle("Exercise Volume by Date");
 
-        return lineChart;
+        // Add plugins for better usability (like zoom and tooltips)
+        chart.getPlugins().add(new Zoomer());
+        chart.getPlugins().add(new DataPointTooltip());
+
+        return chart;
     }
 
     // Method to create the form panel (at BorderLayout.SOUTH)
@@ -211,7 +210,7 @@ public class ActivityScreen {
                 updateGraphForExercise(selectedExercise);
             } else {
                 // Show placeholder text when "Select" is chosen
-                lineChart.getData().clear();  // Clear previous data
+                chart.getDatasets().clear();  // Clear previous data
                 Text graphPlaceholderText = new Text("Select an Exercise to view data.");
                 graphPanel.setCenter(graphPlaceholderText);  // Set the placeholder text
             }
@@ -220,70 +219,60 @@ public class ActivityScreen {
         return formPanel;
     }
 
-    // Method to update the graph based on the selected exercise
-    // Method to update the graph based on the selected exercise
     private void updateGraphForExercise(String exercise) {
-        // Fetch data for the selected exercise from the database
+
         List<ActivityRecord> activityRecords = activityDao.getActivityDataByExercise(exercise);
 
-        // Log the data to see if we're getting the correct records
         logger.info("Fetched {} records for exercise: {}", activityRecords.size(), exercise);
 
         if (!activityRecords.isEmpty()) {
-            // Initialize variables for the earliest and latest timestamps
-            long earliestTimestamp = Long.MAX_VALUE;
-            long latestTimestamp = Long.MIN_VALUE;
+            // Sort the records based on timestamp (ascending order)
+            activityRecords.sort(Comparator.comparingLong(ActivityRecord::getTimestamp));
 
-            // Loop through all activity records to find the earliest and latest timestamps
-            for (ActivityRecord record : activityRecords) {
-                long timestamp = record.getTimestamp();
-                if (timestamp < earliestTimestamp) {
-                    earliestTimestamp = timestamp;
-                }
-                if (timestamp > latestTimestamp) {
-                    latestTimestamp = timestamp;
-                }
-            }
+            // Get the earliest and latest timestamps
+            long earliestTimestamp = activityRecords.get(0).getTimestamp(); // First record has the earliest timestamp
+            long latestTimestamp = activityRecords.get(activityRecords.size() - 1).getTimestamp(); // Last record has the latest timestamp
 
-            // Log the first and last date
-            logger.info("First activity date: {}", new Date(earliestTimestamp));
-            logger.info("Last activity date: {}", new Date(latestTimestamp));
+            // Log the earliest and latest timestamps
+            logger.info("Earliest activity date: {}", new Date(earliestTimestamp));
+            logger.info("Latest activity date: {}", new Date(latestTimestamp));
 
-            // Set the time range for the X-axis to start from the first date and end on the last date
-            xAxis.setLowerBound(earliestTimestamp);
-            xAxis.setUpperBound(latestTimestamp);
+            // Create a new axis with the specific bounds and tick unit
+            DefaultNumericAxis xAxis = new DefaultNumericAxis(earliestTimestamp, latestTimestamp, 2592000000L); // 30 days in milliseconds (1 month)
+            xAxis1.set("Date", "iso");
+            // Set time axis and format the date
+            xAxis.setTimeAxis(true);
+            xAxis.setAutoRangeRounding(false); // Prevent auto-ranging
 
-            // Set tick unit to months (adjust as needed)
-            xAxis.setTickUnit(2592000000L);  // 30 days in milliseconds
+            StringConverter<Number> converter = getNumberStringConverter();
 
-            // Create a series for the graph
-            XYChart.Series<Number, Number> series = new XYChart.Series<>();
-            series.setName(exercise);
+            xAxis1.setTickLabelFormatter(converter);
+            xAxis1.set("Date", "iso");
+            
+            // Set the X-axis to the chart
+            chart.getXAxis().set(xAxis); // Link this new axis to the chart
+        } else {
+            logger.info("No records found for the selected exercise.");
+        }
+
+        if (!activityRecords.isEmpty()) {
+            // Create a DataSet for the graph
+            DefaultErrorDataSet dataSet = new DefaultErrorDataSet("Exercise Data");
 
             // Process the data to populate the graph
             for (ActivityRecord record : activityRecords) {
                 double volume = record.getReps() * record.getWeight();
-                // Log the data for debugging purposes
-                logger.info("Adding data point: Timestamp = {}, Volume = {}", record.getTimestamp(), volume);
 
-                // Add the data point to the series
-                series.getData().add(new XYChart.Data<>(record.getTimestamp(), volume));
+                // Add the data point to the DataSet
+                dataSet.add(new Date(record.getTimestamp()).getTime(), volume);
             }
 
-            // Now update the graphPanel with either the new graph or a placeholder message
-            if (series.getData().isEmpty()) {
-                // If no data is available, show the "No data" message
-                logger.info("No data found for the selected exercise.");
-                Text graphPlaceholderText = new Text("No data available for this exercise.");
-                graphPanel.setCenter(graphPlaceholderText);
-            } else {
-                // Clear previous chart data and add the new data series
-                lineChart.getData().clear();
-                lineChart.getData().add(series);
+            // Clear previous chart data and add the new data series
+            chart.getDatasets().clear();
+            chart.getDatasets().add(dataSet);
 
-                // Ensure the chart is displayed in the center of the graphPanel
-                graphPanel.setCenter(lineChart);
-            }
+            // Ensure the chart is displayed in the center of the graphPanel
+            graphPanel.setCenter(chart);
         } else {
             // If no data is available, show the "No data" message
             logger.info("No data found for the selected exercise.");
@@ -292,4 +281,27 @@ public class ActivityScreen {
         }
     }
 
+    private static @NotNull StringConverter<Number> getNumberStringConverter() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM yyyy");
+
+        StringConverter<Number> converter = new StringConverter<Number>() {
+            @Override
+            public String toString(Number value) {
+                if (value == null) {
+                    return "";
+                }
+                // Convert the number (Double) to a long timestamp and format it
+                long timestamp = value.longValue();
+                Date date = new Date(timestamp);
+                return dateFormat.format(date);  // Use your dateFormat here
+            }
+
+            @Override
+            public Number fromString(String string) {
+                // You can leave this unimplemented if you're only formatting, not parsing input
+                return null;
+            }
+        };
+        return converter;
+    }
 }
