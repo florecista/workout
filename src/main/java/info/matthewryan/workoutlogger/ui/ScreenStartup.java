@@ -26,9 +26,9 @@ public class ScreenStartup extends Application {
     private final String[] defaultExercises = {
             "Abdominal Twists", "Abmat Crunches", "Back Extension", "Back Squat",
             "Barbell Chest Squat", "Bench Press", "Bicep Curl", "Bulgarian Split Squat",
-            "Cable Side Deltoid Pulls", "Deadlift", "Dumbbell Bench Press", "Dumbbell Chin Row",
-            "Dumbbell Side Raises", "Dumbbell Shoulder Press", "Lat Pulldown", "Leg Press",
-            "Parallel Dips", "Pull-Up", "Push-Up", "Seated Row", "Tricep Extension"
+            "Cable Side Deltoid Pulls", "Deadlift", "Dumbell Bench Press", "Dumbell Chin Row",
+            "Dumbell Side Raises", "Dumbell Shoulder Press", "Lat Pulldown", "Leg Press",
+            "Parallel Dips", "Pull-Up", "Push-Up", "Rope Pulls To Face", "Seated Row", "Trapbar Deadlift", "Triceps Extension"
     };
 
     private final String[] volumeGroups = {
