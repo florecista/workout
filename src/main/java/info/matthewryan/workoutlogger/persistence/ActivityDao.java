@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,6 +74,37 @@ public class ActivityDao {
             logger.error("Error retrieving activities: {}", e.getMessage(), e);
         }
         return activityRecords;
+    }
+
+    public List<ActivityRecord> getActivitiesByDate(LocalDate date) {
+        List<ActivityRecord> activities = new ArrayList<>();
+        // Convert LocalDate to timestamp (start of day)
+        long startOfDay = date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        long endOfDay = date.atTime(23, 59, 59, 999999999).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+
+        String query = "SELECT * FROM activity_records WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp DESC";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setLong(1, startOfDay);  // Start of day timestamp
+            pstmt.setLong(2, endOfDay);    // End of day timestamp
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    String activity = rs.getString("activity");
+                    int reps = rs.getInt("reps");
+                    double weight = rs.getDouble("weight");
+                    long timestamp = rs.getLong("timestamp");
+
+                    // Create ActivityRecord object and add it to the list
+                    ActivityRecord record = new ActivityRecord(activity, reps, weight, timestamp);
+                    activities.add(record);
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error retrieving activity data for date {}: {}", date, e.getMessage(), e);
+        }
+
+        return activities;
     }
 
     public ActivityRecord getPersonalBest(String activity) {
