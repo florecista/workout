@@ -101,6 +101,7 @@ public class ActivityScreen {
 
         XYChart chart = new XYChart(xAxis1, yAxis1);
         chart.setTitle("Exercise Volume by Date");
+        chart.setLegendVisible(false);
 
         // Add plugins for better usability (like zoom and tooltips)
         chart.getPlugins().add(new Zoomer());
