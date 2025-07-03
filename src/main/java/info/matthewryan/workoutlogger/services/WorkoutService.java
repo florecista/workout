@@ -15,7 +15,6 @@ public class WorkoutService {
     private long sessionStartTime;
     private long sessionEndTime;
 
-    // Constructor that accepts ApplicationSettings
     public WorkoutService(ApplicationSettings settings) {
         this.settings = settings;
     }

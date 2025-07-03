@@ -1,18 +1,14 @@
 package info.matthewryan.workoutlogger.model;
 
-import info.matthewryan.workoutlogger.ApplicationSettings;
-
 import java.util.Objects;
 
 public class ActivityRecord {
 
-    private long id; // You can manage the ID manually or use SQLite for auto-generation
+    private long id;
     private String activity;
     private int reps;
     private double weight;
     private long timestamp;
-
-    // Constructor
 
     public ActivityRecord(String activity, int reps, double weight, long timestamp) {
         this.activity = activity;
@@ -21,7 +17,6 @@ public class ActivityRecord {
         this.timestamp = timestamp;
     }
 
-    // Getters and Setters
     public long getId() {
         return id;
     }
@@ -74,7 +69,6 @@ public class ActivityRecord {
                 '}';
     }
 
-    // Optional: Override equals() and hashCode() for comparing objects and using collections
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;

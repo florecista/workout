@@ -26,14 +26,12 @@ public class HistoryScreen {
     private ExerciseDao exerciseDao;
     private CustomToolBar toolBar;
 
-    // Constructor accepts the ActivityDao, ExerciseDao, and ToolBar to interact with the database
     public HistoryScreen(ActivityDao activityDao, ExerciseDao exerciseDao, CustomToolBar toolBar) {
         this.activityDao = activityDao;
         this.exerciseDao = exerciseDao;
         this.toolBar = toolBar;  // Store the passed ToolBar instance
     }
 
-    // Method to return the root layout (BorderPane)
     public BorderPane getRoot() {
 
         if (activityDao == null)
@@ -55,15 +53,12 @@ public class HistoryScreen {
         return root;
     }
 
-    // Create the Calendar Picker Panel
     private BorderPane createCalendarPickerPanel() {
         BorderPane panel = new BorderPane();
 
-        // Create JFXCalendar for the top half
         JFXCalendar<ActivityRecord> calendar = new JFXCalendar<>();
         calendar.setMultipleSelection(true);  // Allow multiple date selection if needed
 
-        // Add listener to handle date selection
         calendar.selectedDateProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.isPresent()) {
                 LocalDate selectedDate = newValue.get();
@@ -73,7 +68,6 @@ public class HistoryScreen {
             }
         });
 
-        // Add calendar to the panel
         StackPane calendarPane = new StackPane(calendar);
         calendarPane.setAlignment(Pos.CENTER);
         //calendarPane.setPadding(new Insets(10));
@@ -86,10 +80,8 @@ public class HistoryScreen {
     private BorderPane createHistoryPanel() {
         BorderPane historyPanel = new BorderPane();
 
-        // Create the TableView to display the history of activities
         TableView<ActivityRecord> tableView = new TableView<>();
 
-        // Define columns
         TableColumn<ActivityRecord, String> activityColumn = new TableColumn<>("Activity");
         activityColumn.setCellValueFactory(new PropertyValueFactory<>("activity"));
 
@@ -102,7 +94,6 @@ public class HistoryScreen {
         TableColumn<ActivityRecord, Long> timestampColumn = new TableColumn<>("Timestamp");
         timestampColumn.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
 
-        // Format timestamp to readable date
         timestampColumn.setCellFactory(col -> {
             return new javafx.scene.control.TableCell<ActivityRecord, Long>() {
                 @Override
@@ -118,10 +109,8 @@ public class HistoryScreen {
             };
         });
 
-        // Add columns to the TableView
         tableView.getColumns().addAll(activityColumn, repsColumn, weightColumn, timestampColumn);
 
-        // Fetch activities from the database, ordered by timestamp descending
         List<ActivityRecord> activities = activityDao.getAllActivitiesOrderedByTimestamp();
         tableView.getItems().setAll(activities);  // Populate the table with activity records
         historyPanel.setCenter(tableView);
@@ -129,13 +118,11 @@ public class HistoryScreen {
         return historyPanel;
     }
 
-    // Method to update the TableView with filtered activities
     private void updateTable(List<ActivityRecord> activities) {
         TableView<ActivityRecord> tableView = new TableView<>();
         tableView.getItems().setAll(activities);  // Populate the table with filtered activity records
     }
 
-    // Method to start the HistoryScreen (open as a new window if needed)
     public void start(Stage primaryStage) {
         Scene scene = new Scene(getRoot(), 400, 600);
         primaryStage.setTitle("Activity History");

@@ -40,57 +40,45 @@ public class ActivityScreen {
     private BorderPane graphPanel;  // Declare the graph panel here
     private XYChart chart;  // Use Chart FX's XYChart
 
-    // Declare xAxis1 globally so we can set it in the updateGraphForExercise method
     private DefaultNumericAxis xAxis1;
 
-    // Constructor accepts ActivityDao, ExerciseDao, and ToolBar
     public ActivityScreen(ActivityDao activityDao, ExerciseDao exerciseDao, CustomToolBar toolBar) {
         this.activityDao = activityDao;
         this.exerciseDao = exerciseDao;
         this.toolBar = toolBar;
     }
 
-    // Implement getRoot to return the screen's root layout
     public BorderPane getRoot() {
-        // Create the main BorderPane for ActivityScreen layout
+
         BorderPane root = new BorderPane();
 
-        // Create the graphPanel for the top part (BorderLayout.NORTH)
         graphPanel = createGraphPanel();  // Initialize the graphPanel here
 
-        // Create the formPanel for the bottom part (BorderLayout.SOUTH)
         BorderPane formPanel = createFormPanel();
 
-        // Set the graphPanel at the top (BorderLayout.NORTH) and the formPanel at the bottom (BorderLayout.SOUTH)
         root.setTop(graphPanel);
         root.setBottom(formPanel);
 
-        // Set a fixed height for the panels (50% each)
         graphPanel.prefHeightProperty().bind(root.heightProperty().multiply(0.5));  // 50% of screen height
         formPanel.prefHeightProperty().bind(root.heightProperty().multiply(0.5));   // 50% of screen height
 
-        return root;  // Return the root layout (BorderPane)
+        return root;
     }
 
-    // Method to create the graph panel (at BorderLayout.NORTH)
     private BorderPane createGraphPanel() {
         BorderPane graphPanel = new BorderPane();
         graphPanel.setStyle("-fx-background-color: lightgray;");  // Example style for graph panel
 
-        // Initialize the Chart FX XYChart and set it to the center of graphPanel
         chart = createGraphChart();  // Now we store the reference to the XYChart
 
-        // Add the initial placeholder text
         Text graphPlaceholderText = new Text("Select an Exercise to view data.");
         graphPanel.setCenter(graphPlaceholderText);  // Set the placeholder text initially
 
         return graphPanel;
     }
 
-    // Create a Chart FX XYChart to display the volume data
     private XYChart createGraphChart() {
 
-        // Initialize the x-axis globally so we can modify it later
         xAxis1 = new DefaultNumericAxis("Date", "iso");
         xAxis1.setOverlapPolicy(io.fair_acc.chartfx.axes.AxisLabelOverlapPolicy.SKIP_ALT);
         xAxis1.setAutoRangeRounding(false);
@@ -103,14 +91,12 @@ public class ActivityScreen {
         chart.setTitle("Exercise Volume by Date");
         chart.setLegendVisible(false);
 
-        // Add plugins for better usability (like zoom and tooltips)
         chart.getPlugins().add(new Zoomer());
         chart.getPlugins().add(new DataPointTooltip());
 
         return chart;
     }
 
-    // Method to create the form panel (at BorderLayout.SOUTH)
     private BorderPane createFormPanel() {
         BorderPane formPanel = new BorderPane();
         formPanel.setStyle("-fx-background-color: white;");  // Example style for form panel

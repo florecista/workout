@@ -12,12 +12,10 @@ public class WorkoutDao {
     private static final Logger logger = LoggerFactory.getLogger(WorkoutDao.class);
     private Connection connection;
 
-    // Constructor that accepts a Connection (to support testing with the same DB)
     public WorkoutDao(Connection connection) {
         this.connection = connection;
     }
 
-    // Create workouts table
     public void createWorkoutTable() {
         String sql = "CREATE TABLE IF NOT EXISTS workouts (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -31,7 +29,6 @@ public class WorkoutDao {
         }
     }
 
-    // Create workout_exercises table
     public void createWorkoutExercisesTable() {
         String sql = "CREATE TABLE IF NOT EXISTS workout_exercises (" +
                 "workout_id INTEGER, " +
@@ -47,7 +44,6 @@ public class WorkoutDao {
         }
     }
 
-    // Create exercises table
     public void createExerciseTable() {
         String sql = "CREATE TABLE IF NOT EXISTS exercises (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -65,7 +61,6 @@ public class WorkoutDao {
         }
     }
 
-    // Insert workout
     public void insertWorkout(String workoutName) {
         String sql = "INSERT INTO workouts (name) VALUES (?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -77,7 +72,6 @@ public class WorkoutDao {
         }
     }
 
-    // Add exercise to workout
     public void addExerciseToWorkout(int workoutId, int exerciseId, int order) {
         String sql = "INSERT INTO workout_exercises (workout_id, exercise_id, \"order\") VALUES (?, ?, ?)";
 
@@ -92,7 +86,6 @@ public class WorkoutDao {
         }
     }
 
-    // Get exercise ID by name
     public int getExerciseIdByName(String exerciseName) {
         String sql = "SELECT id FROM exercises WHERE name = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -111,7 +104,6 @@ public class WorkoutDao {
         }
     }
 
-    // Get exercises for a specific workout
     public List<String> getExercisesForWorkout(int workoutId) {
         String sql = "SELECT e.name FROM exercises e " +
                 "JOIN workout_exercises we ON e.id = we.exercise_id " +

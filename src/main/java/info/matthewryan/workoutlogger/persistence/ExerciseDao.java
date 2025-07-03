@@ -9,17 +9,14 @@ import java.util.List;
 
 public class ExerciseDao {
 
-    // Create a logger instance
     private static final Logger logger = LoggerFactory.getLogger(ExerciseDao.class);
 
     private final Connection connection;  // Change to use a shared connection
 
-    // Constructor that accepts a Connection (to support testing with the same DB)
     public ExerciseDao(Connection connection) {
         this.connection = connection;
     }
 
-    // Method to create the exercises table (if it doesn't exist)
     public void createExerciseTable() {
         String sql = "CREATE TABLE IF NOT EXISTS exercises (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -34,7 +31,6 @@ public class ExerciseDao {
         }
     }
 
-    // Method to insert a new exercise name
     public boolean insertExercise(String exerciseName) {
         // Check for empty or null exercise name
         if (exerciseName == null || exerciseName.trim().isEmpty()) {
@@ -53,10 +49,6 @@ public class ExerciseDao {
         }
     }
 
-
-
-
-    // Method to retrieve all exercise names
     public List<String> getAllExercises() {
         List<String> exercises = new ArrayList<>();
         String sql = "SELECT name FROM exercises";
@@ -75,8 +67,6 @@ public class ExerciseDao {
     }
 
     // ===================== Volume Group Table Methods ==========================
-
-    // Method to create the Volume Group table (if it doesn't exist)
     public void createVolumeGroupTable() {
         String sql = "CREATE TABLE IF NOT EXISTS volume_groups (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -91,7 +81,6 @@ public class ExerciseDao {
         }
     }
 
-    // Method to insert a new volume group
     public void insertVolumeGroup(String groupName) {
         String sql = "INSERT OR IGNORE INTO volume_groups (name) VALUES (?)";
 
@@ -104,7 +93,6 @@ public class ExerciseDao {
         }
     }
 
-    // Method to retrieve all volume groups
     public List<String> getAllVolumeGroups() {
         List<String> volumeGroups = new ArrayList<>();
         String sql = "SELECT name FROM volume_groups";
@@ -123,8 +111,6 @@ public class ExerciseDao {
     }
 
     // ===================== Archive Exercise Method ==========================
-
-    // Method to update exercise as archived or not (toggle functionality)
     public void archiveExercise(int exerciseId, boolean archive) {
         String sql = "UPDATE exercises SET archived = ? WHERE id = ?";
 
@@ -139,8 +125,6 @@ public class ExerciseDao {
     }
 
     // ===================== Delete Exercise Method ==========================
-
-    // Method to delete an exercise from the database
     public void deleteExercise(int exerciseId) {
         String sql = "DELETE FROM exercises WHERE id = ?";
 

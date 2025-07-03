@@ -46,7 +46,7 @@ public class ScreenStartup extends Application {
 
     private CsvImporter csvImporter;
 
-    private boolean loadExistingData = true; // Set to true if you want to load existing data
+    private boolean loadExistingData = true;
 
     public static void main(String[] args) {
         launch(args);
@@ -54,23 +54,20 @@ public class ScreenStartup extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        // Initialize the database connection
+
         DatabaseConnection databaseConnection = new DatabaseConnection();
 
-        // Initialize the ActivityDao and ExerciseDao with the database connection
         activityDao = new ActivityDao(databaseConnection.getConnection());
         exerciseDao = new ExerciseDao(databaseConnection.getConnection());
 
-        // Create tables if they do not exist
         activityDao.createActivityTable();
         exerciseDao.createExerciseTable();
-        exerciseDao.createVolumeGroupTable(); // Create Volume Group table
-        preloadVolumeGroups(); // Preload volume groups
-        preloadDefaultExercises(); // Preload default exercises
+        exerciseDao.createVolumeGroupTable();
+        preloadVolumeGroups();
+        preloadDefaultExercises();
 
         csvImporter = new CsvImporter(activityDao);
 
-        // If loadExistingData is true, load the existing data from the CSV file
         if (loadExistingData) {
             loadExistingDataFromCSV();
         }
@@ -103,19 +100,16 @@ public class ScreenStartup extends Application {
         primaryStage.show();
     }
 
-    // Show the StartScreen (by removing others and showing StartScreen)
     private void showStartScreen(BorderPane deck) {
         deck.setCenter(startScreen.getRoot());
         deck.setBottom(toolBar);
     }
 
-    // Show the ActivityScreen (by removing others and showing ActivityScreen)
     public void showActivityScreen(BorderPane deck) {
         deck.setCenter(activityScreen.getRoot());
         deck.setBottom(toolBar);
     }
 
-    // Show the HistoryScreen (by removing others and showing HistoryScreen)
     private void showHistoryScreen(BorderPane deck) {
         deck.setCenter(historyScreen.getRoot());
         deck.setBottom(toolBar);
@@ -133,7 +127,6 @@ public class ScreenStartup extends Application {
         deck.setCenter(detailScreen.getRoot());  // Navigate to ExerciseDetailScreen
     }
 
-    // Method to load existing data from a CSV file
     private void loadExistingDataFromCSV() {
         String filePath = "/data.csv";
         int lineCounter = 0;  // Counter to track lines

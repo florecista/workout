@@ -13,9 +13,8 @@ import java.util.List;
 public class ExercisesScreen {
 
     private ExerciseDao exerciseDao;
-    private ScreenStartup screenStartup; // Reference to the existing ScreenStartup instance
+    private ScreenStartup screenStartup;
 
-    // Constructor accepts ExerciseDao and ScreenStartup
     public ExercisesScreen(ExerciseDao exerciseDao, ScreenStartup screenStartup) {
         this.exerciseDao = exerciseDao;
         this.screenStartup = screenStartup;

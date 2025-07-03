@@ -13,7 +13,6 @@ public class ExerciseDetailScreen {
     private String existingExerciseName;
     private ScreenStartup screenStartup;
 
-    // Constructor accepts ExerciseDao and optionally an existing exercise name for editing
     public ExerciseDetailScreen(ExerciseDao exerciseDao, ScreenStartup screenStartup, String existingExerciseName) {
         this.exerciseDao = exerciseDao;
         this.screenStartup = screenStartup; // Initialize the ScreenStartup reference
@@ -23,18 +22,15 @@ public class ExerciseDetailScreen {
     public BorderPane getRoot() {
         BorderPane root = new BorderPane();
 
-        // Create a Label and TextField for the exercise name
         Label exerciseNameLabel = new Label("Exercise Name:");
         TextField exerciseNameField = new TextField();
         if (existingExerciseName != null) {
             exerciseNameField.setText(existingExerciseName);
         }
 
-        // Create Save and Cancel buttons
         Button saveButton = new Button("Save");
         Button cancelButton = new Button("Cancel");
 
-        // Save button action
         saveButton.setOnAction(e -> {
             String exerciseName = exerciseNameField.getText();
             if (!exerciseName.isEmpty()) {
@@ -43,21 +39,17 @@ public class ExerciseDetailScreen {
             }
         });
 
-        // Cancel button action
         cancelButton.setOnAction(e -> goBackToExercisesScreen());
 
-        // Arrange the components in the form
         VBox formLayout = new VBox(10, exerciseNameLabel, exerciseNameField, saveButton, cancelButton);
         formLayout.setPadding(new Insets(20));
 
-        // Set the form in the center of the screen
         root.setCenter(formLayout);
 
         return root;
     }
 
     private void goBackToExercisesScreen() {
-        // Navigate back to ExercisesScreen using ScreenStartup
         screenStartup.showExercisesScreen();  // Call the method in ScreenStartup to show ExercisesScreen
     }
 
