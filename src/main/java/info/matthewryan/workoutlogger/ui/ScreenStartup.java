@@ -103,22 +103,19 @@ public class ScreenStartup extends Application {
     // Show the StartScreen (by removing others and showing StartScreen)
     private void showStartScreen(BorderPane deck) {
         deck.setCenter(startScreen.getRoot());
-        deck.setBottom(toolBar); // Ensure toolbar stays visible at the bottom
+        deck.setBottom(toolBar);
     }
 
     // Show the ActivityScreen (by removing others and showing ActivityScreen)
     public void showActivityScreen(BorderPane deck) {
         deck.setCenter(activityScreen.getRoot());
-        deck.setBottom(toolBar); // Ensure toolbar stays visible at the bottom
+        deck.setBottom(toolBar);
     }
 
     // Show the HistoryScreen (by removing others and showing HistoryScreen)
     private void showHistoryScreen(BorderPane deck) {
-        logger.info("Show history screen");
-        logger.info("Activities count: {}", activityDao.getAllActivitiesOrderedByTimestamp().size());
-
         deck.setCenter(historyScreen.getRoot());
-        deck.setBottom(toolBar); // Ensure toolbar stays visible at the bottom
+        deck.setBottom(toolBar);
     }
 
     // Method to load existing data from a CSV file

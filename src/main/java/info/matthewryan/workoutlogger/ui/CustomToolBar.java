@@ -39,7 +39,6 @@ public class CustomToolBar extends ToolBar {
     }
 
     public void setOnHistoryAction(Runnable action) {
-        logger.info("History button clicked");
         btnHistory.setOnAction(e -> action.run());
     }
 }

@@ -3,22 +3,16 @@ package info.matthewryan.workoutlogger.ui;
 import info.matthewryan.workoutlogger.persistence.ActivityDao;
 import info.matthewryan.workoutlogger.model.ActivityRecord;
 import info.matthewryan.workoutlogger.persistence.ExerciseDao;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.Region;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import em.libs.jfxcalendar.JFXCalendar;
-import em.libs.jfxcalendar.JFXCalendarData;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -54,7 +48,11 @@ public class HistoryScreen {
         root.setTop(calendarPanel);
         root.setBottom(historyPanel);
 
-        return root;  // Return the root layout for use in the "deck" or cards UI
+        //calendarPanel.prefHeightProperty().bind(root.heightProperty().multiply(0.20));  // 50% of screen height
+        historyPanel.prefHeightProperty().bind(root.heightProperty().multiply(0.45));   // 50% of screen height
+
+
+        return root;
     }
 
     // Create the Calendar Picker Panel
@@ -127,9 +125,6 @@ public class HistoryScreen {
         List<ActivityRecord> activities = activityDao.getAllActivitiesOrderedByTimestamp();
         tableView.getItems().setAll(activities);  // Populate the table with activity records
         historyPanel.setCenter(tableView);
-
-        // Set the passed toolBar instead of creating a new one
-        historyPanel.setBottom(toolBar);
 
         return historyPanel;
     }
