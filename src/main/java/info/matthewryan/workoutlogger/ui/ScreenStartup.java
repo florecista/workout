@@ -83,7 +83,7 @@ public class ScreenStartup extends Application {
         activityScreen = new ActivityScreen(activityDao, exerciseDao, toolBar);
         startScreen = new StartScreen(activityDao, exerciseDao, toolBar, this);
         historyScreen = new HistoryScreen(activityDao, exerciseDao, toolBar);
-        exercisesScreen = new ExercisesScreen(exerciseDao);
+        exercisesScreen = new ExercisesScreen(exerciseDao, this);
 
         // Set up a BorderPane to hold all the screens (Deck of screens)
         BorderPane deck = new BorderPane();
@@ -121,10 +121,16 @@ public class ScreenStartup extends Application {
         deck.setBottom(toolBar);
     }
 
-    private void showExercisesScreen() {
+    void showExercisesScreen() {
         BorderPane deck = (BorderPane) toolBar.getScene().getRoot();
         deck.setCenter(exercisesScreen.getRoot());
         deck.setBottom(toolBar);
+    }
+
+    public void showExerciseDetailScreen(String exerciseName) {
+        ExerciseDetailScreen detailScreen = new ExerciseDetailScreen(exerciseDao, this, exerciseName);
+        BorderPane deck = (BorderPane) toolBar.getScene().getRoot();
+        deck.setCenter(detailScreen.getRoot());  // Navigate to ExerciseDetailScreen
     }
 
     // Method to load existing data from a CSV file
