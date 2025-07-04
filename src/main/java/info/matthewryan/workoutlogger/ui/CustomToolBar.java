@@ -15,26 +15,37 @@ public class CustomToolBar extends ToolBar {
     private Button btnRoutines;
     private Button btnHistory;
     private Button btnExercises;
+    private Button btnProgress;
 
     public CustomToolBar(Stage primaryStage, ActivityDao activityDao, ExerciseDao exerciseDao) {
         super();
         btnRoutines = new Button("Routines");
         btnHistory = new Button("History");
-        btnExercises = new Button("Exercises");  // Initialize the Exercises button
+        btnExercises = new Button("Exercises");
+        btnProgress = new Button("Progress");
 
+        // Routines button action
         btnRoutines.setOnAction(e -> {
             // This will be handled by ScreenStartup
         });
 
+        // History button action
         btnHistory.setOnAction(e -> {
             // This will be handled by ScreenStartup
         });
 
+        // Exercises button action
         btnExercises.setOnAction(e -> {
             // This will be handled by ScreenStartup
         });
 
-        getItems().addAll(btnRoutines, btnHistory, btnExercises);  // Add the new button to the toolbar
+        // Progress button action
+        btnProgress.setOnAction(e -> {
+            // Navigate to ProgressScreen
+            // This will be handled by ScreenStartup
+        });
+
+        getItems().addAll(btnRoutines, btnProgress, btnHistory, btnExercises);  // Add Progress button between Routines and History
     }
 
     // Setters to attach actions in ScreenStartup
@@ -48,5 +59,9 @@ public class CustomToolBar extends ToolBar {
 
     public void setOnExercisesAction(Runnable action) {
         btnExercises.setOnAction(e -> action.run());
+    }
+
+    public void setOnProgressAction(Runnable action) {
+        btnProgress.setOnAction(e -> action.run());
     }
 }

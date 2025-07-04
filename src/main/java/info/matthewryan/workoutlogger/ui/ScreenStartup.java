@@ -43,6 +43,7 @@ public class ScreenStartup extends Application {
     private ActivityScreen activityScreen;
     private HistoryScreen historyScreen;
     private ExercisesScreen exercisesScreen;
+    private ProgressScreen progressScreen;
 
     private CsvImporter csvImporter;
 
@@ -81,6 +82,8 @@ public class ScreenStartup extends Application {
         startScreen = new StartScreen(activityDao, exerciseDao, toolBar, this);
         historyScreen = new HistoryScreen(activityDao, exerciseDao, toolBar);
         exercisesScreen = new ExercisesScreen(exerciseDao, this);
+        progressScreen = new ProgressScreen(exerciseDao, this);  // Initialize ProgressScreen
+
 
         // Set up a BorderPane to hold all the screens (Deck of screens)
         BorderPane deck = new BorderPane();
@@ -90,6 +93,7 @@ public class ScreenStartup extends Application {
         toolBar.setOnRoutinesAction(() -> showStartScreen(deck));
         toolBar.setOnHistoryAction(() -> showHistoryScreen(deck));
         toolBar.setOnExercisesAction(() -> showExercisesScreen());
+        toolBar.setOnProgressAction(() -> showProgressScreen());
 
         // Set up the layout with the toolbar and the current screen
         deck.setBottom(toolBar); // Attach the toolbar to the bottom of BorderPane
@@ -103,6 +107,18 @@ public class ScreenStartup extends Application {
     private void showStartScreen(BorderPane deck) {
         deck.setCenter(startScreen.getRoot());
         deck.setBottom(toolBar);
+    }
+
+    void showProgressScreen() {
+        BorderPane deck = (BorderPane) toolBar.getScene().getRoot();
+        deck.setCenter(progressScreen.getRoot());
+        deck.setBottom(toolBar);
+    }
+
+    void showExerciseProgressScreen(String exerciseName) {
+        ExerciseProgressScreen progressScreen = new ExerciseProgressScreen();
+        BorderPane deck = (BorderPane) toolBar.getScene().getRoot();
+        deck.setCenter(progressScreen.getRoot());
     }
 
     public void showActivityScreen(BorderPane deck) {
@@ -124,7 +140,7 @@ public class ScreenStartup extends Application {
     public void showExerciseDetailScreen(String exerciseName) {
         ExerciseDetailScreen detailScreen = new ExerciseDetailScreen(exerciseDao, this, exerciseName);
         BorderPane deck = (BorderPane) toolBar.getScene().getRoot();
-        deck.setCenter(detailScreen.getRoot());  // Navigate to ExerciseDetailScreen
+        deck.setCenter(detailScreen.getRoot());
     }
 
     private void loadExistingDataFromCSV() {
