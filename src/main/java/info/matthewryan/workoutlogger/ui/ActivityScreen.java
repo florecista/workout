@@ -1,5 +1,6 @@
 package info.matthewryan.workoutlogger.ui;
 
+import info.matthewryan.workoutlogger.model.Exercise;
 import info.matthewryan.workoutlogger.persistence.ActivityDao;
 import info.matthewryan.workoutlogger.persistence.ExerciseDao;
 import info.matthewryan.workoutlogger.model.ActivityRecord;
@@ -10,6 +11,7 @@ import io.fair_acc.chartfx.plugins.DataPointTooltip;
 import io.fair_acc.chartfx.plugins.Zoomer;
 import io.fair_acc.dataset.spi.DefaultErrorDataSet;
 
+import javafx.scene.control.ListCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
@@ -99,19 +101,47 @@ public class ActivityScreen {
 
     private BorderPane createFormPanel() {
         BorderPane formPanel = new BorderPane();
-        formPanel.setStyle("-fx-background-color: white;");  // Example style for form panel
+        formPanel.setStyle("-fx-background-color: white;");
 
         // Create the form elements
         Text exerciseLabel = new Text("Exercise:");
-        ComboBox<String> exerciseComboBox = new ComboBox<>();
-        List<String> exercises = exerciseDao.getAllExercises();  // Get exercises from the database
+        ComboBox<Exercise> exerciseComboBox = new ComboBox<>();
+        List<Exercise> exercises = exerciseDao.getAllExercises();
 
-        Collections.sort(exercises);  // This will sort the exercises in ascending alphabetical order
+        // Add a "Select" placeholder as a string
+        exerciseComboBox.getItems().add(new Exercise(-1, "Select an Exercise"));  // Add the placeholder
+        exerciseComboBox.getItems().addAll(exercises);  // Add real exercises
 
-        exerciseComboBox.getItems().add("Select");  // Add "Select" as the first option
-        exerciseComboBox.getItems().addAll(exercises);
+        exerciseComboBox.getSelectionModel().selectFirst();  // Select the "Select an Exercise" by default
 
-        exerciseComboBox.getSelectionModel().select("Select");  // Select the "Select" option by default
+        // Set up the ComboBox to display only the name of the exercise
+        exerciseComboBox.setCellFactory(param -> new ListCell<Exercise>() {
+            @Override
+            protected void updateItem(Exercise item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item == null || empty) {
+                    setText(null);
+                } else {
+                    setText(item.getName());  // Display the exercise name only
+                }
+            }
+        });
+
+        // Use StringConverter for selected item (to ensure the placeholder is displayed correctly)
+        exerciseComboBox.setConverter(new StringConverter<Exercise>() {
+            @Override
+            public String toString(Exercise exercise) {
+                if (exercise == null) {
+                    return null;
+                }
+                return exercise.getName();  // Display only the name of the exercise
+            }
+
+            @Override
+            public Exercise fromString(String string) {
+                return null;  // This is not used in this case, so just return null
+            }
+        });
 
         Text weightLabel = new Text("Weight (kg):");
         TextField weightField = new TextField();
@@ -126,13 +156,17 @@ public class ActivityScreen {
         // Handle Save button click
         saveButton.setOnAction(event -> {
             // Collect the data from the form
-            String exercise = exerciseComboBox.getValue();
+            Exercise selectedExercise = exerciseComboBox.getValue();
             String weightText = weightField.getText();
             String repsText = repsField.getText();
 
             // Validate inputs (e.g., check if weight and reps are numbers)
+            if (selectedExercise == null || "Select an Exercise".equals(selectedExercise.getName())) {
+                System.out.println("Please select an exercise.");
+                return;
+            }
+
             if (weightText.isEmpty() || repsText.isEmpty()) {
-                // You might want to show a message here to inform the user to fill all fields
                 System.out.println("Please fill in all fields.");
                 return;
             }
@@ -142,11 +176,11 @@ public class ActivityScreen {
                 int reps = Integer.parseInt(repsText);
 
                 // Create a new ActivityRecord and insert it into the database
-                ActivityRecord record = new ActivityRecord(exercise, reps, weight, System.currentTimeMillis());
+                ActivityRecord record = new ActivityRecord(selectedExercise.getId(), reps, weight, System.currentTimeMillis());
                 activityDao.insertActivity(record);  // Insert the activity into the database
 
                 // Inform the user and clear the fields
-                System.out.println("Saved activity: " + exercise + " " + weight + " kg x " + reps + " reps");
+                System.out.println("Saved activity: " + selectedExercise.getName() + " " + weight + " kg x " + reps + " reps");
                 clearButton.fire(); // Clear the fields after save
 
             } catch (NumberFormatException e) {
@@ -189,22 +223,9 @@ public class ActivityScreen {
         // Optional: Add some margin to the form panel (if needed)
         formPanel.setMinHeight(Region.USE_PREF_SIZE);
 
-        // Add functionality for exerciseComboBox change to update graph
-        exerciseComboBox.setOnAction(e -> {
-            String selectedExercise = exerciseComboBox.getSelectionModel().getSelectedItem();
-            if (!"Select".equals(selectedExercise)) {
-                // Update the graph with data for the selected exercise
-                updateGraphForExercise(selectedExercise);
-            } else {
-                // Show placeholder text when "Select" is chosen
-                chart.getDatasets().clear();  // Clear previous data
-                Text graphPlaceholderText = new Text("Select an Exercise to view data.");
-                graphPanel.setCenter(graphPlaceholderText);  // Set the placeholder text
-            }
-        });
-
         return formPanel;
     }
+
 
     private void updateGraphForExercise(String exercise) {
 

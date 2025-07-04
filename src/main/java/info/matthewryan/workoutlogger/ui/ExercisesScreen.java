@@ -1,5 +1,6 @@
 package info.matthewryan.workoutlogger.ui;
 
+import info.matthewryan.workoutlogger.model.Exercise;
 import info.matthewryan.workoutlogger.persistence.ExerciseDao;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -27,16 +28,29 @@ public class ExercisesScreen {
         HBox topToolbar = createTopToolbar();
 
         // Create a ListView to display the exercises
-        ListView<String> listView = new ListView<>();
-        List<String> exercises = exerciseDao.getAllExercises();
+        ListView<Exercise> listView = new ListView<>();
+        List<Exercise> exercises = exerciseDao.getAllExercises();
         listView.getItems().addAll(exercises);
+
+        // Set up a cell factory to display exercise names in the ListView
+        listView.setCellFactory(param -> new ListCell<Exercise>() {
+            @Override
+            protected void updateItem(Exercise item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item == null || empty) {
+                    setText(null);
+                } else {
+                    setText(item.getName());  // Display the exercise name
+                }
+            }
+        });
 
         // Add double-click event to navigate to ExerciseDetailScreen
         listView.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) { // Double-click
-                String selectedExercise = listView.getSelectionModel().getSelectedItem();
+                Exercise selectedExercise = listView.getSelectionModel().getSelectedItem();
                 if (selectedExercise != null) {
-                    screenStartup.showExerciseDetailScreen(selectedExercise);
+                    screenStartup.showExerciseDetailScreen(selectedExercise.getName());
                 }
             }
         });

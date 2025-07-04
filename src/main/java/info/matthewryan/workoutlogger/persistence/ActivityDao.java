@@ -21,13 +21,15 @@ public class ActivityDao {
         this.connection = connection;
     }
 
+    // Create the activity table with exercise_id as a foreign key to exercises table
     public void createActivityTable() {
         String sql = "CREATE TABLE IF NOT EXISTS activity_records (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "activity TEXT NOT NULL, " +
+                "exercise_id INTEGER NOT NULL, " +
                 "reps INTEGER NOT NULL, " +
                 "weight REAL NOT NULL, " +
-                "timestamp INTEGER NOT NULL" +
+                "timestamp INTEGER NOT NULL, " +
+                "FOREIGN KEY (exercise_id) REFERENCES exercises(id)" +
                 ");";
 
         try (Statement stmt = connection.createStatement()) {
@@ -38,66 +40,80 @@ public class ActivityDao {
         }
     }
 
+    // Insert an activity record with exercise_id, reps, weight, and timestamp
     public void insertActivity(ActivityRecord activityRecord) {
-        String sql = "INSERT INTO activity_records (activity, reps, weight, timestamp) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO activity_records (exercise_id, reps, weight, timestamp) VALUES (?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, activityRecord.getActivity());
+            pstmt.setInt(1, activityRecord.getExerciseId());  // Set the exercise_id
             pstmt.setInt(2, activityRecord.getReps());
             pstmt.setDouble(3, activityRecord.getWeight());
             pstmt.setLong(4, activityRecord.getTimestamp());
             pstmt.executeUpdate();
-            //logger.info("Inserted activity: {}", activityRecord);
         } catch (SQLException e) {
             logger.error("Error inserting activity: {}", e.getMessage(), e);
         }
     }
 
-    public List<ActivityRecord> getAllActivities() {
+    // Fetch all activities ordered by timestamp in descending order
+    public List<ActivityRecord> getAllActivitiesOrderedByTimestamp() {
         List<ActivityRecord> activityRecords = new ArrayList<>();
-        String sql = "SELECT * FROM activity_records";
+        String sql = "SELECT * FROM activity_records ORDER BY timestamp DESC";  // Order by timestamp descending
 
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                ActivityRecord record = new ActivityRecord(
-                        rs.getString("activity"),
-                        rs.getInt("reps"),
-                        rs.getDouble("weight"),
-                        rs.getLong("timestamp"));  // Pass settings to constructor
-                record.setId(rs.getLong("id"));
-                activityRecords.add(record);
+                int exerciseId = rs.getInt("exercise_id");  // Get exercise_id
+                String query = "SELECT name FROM exercises WHERE id = ?";
+                try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+                    pstmt.setInt(1, exerciseId);  // Fetch exercise name by exercise_id
+                    ResultSet exerciseRs = pstmt.executeQuery();
+                    String exerciseName = null;
+                    if (exerciseRs.next()) {
+                        exerciseName = exerciseRs.getString("name");
+                    }
+
+                    // Use the exerciseId and other fields to construct the ActivityRecord
+                    ActivityRecord record = new ActivityRecord(exerciseId, rs.getInt("reps"), rs.getDouble("weight"), rs.getLong("timestamp"));
+                    record.setId(rs.getLong("id"));
+                    activityRecords.add(record);  // Add the record to the list
+                }
             }
-            logger.info("Retrieved {} activities", activityRecords.size());
+            logger.info("Retrieved {} activities ordered by timestamp.", activityRecords.size());
         } catch (SQLException e) {
-            logger.error("Error retrieving activities: {}", e.getMessage(), e);
+            logger.error("Error retrieving activities ordered by timestamp: {}", e.getMessage(), e);
         }
         return activityRecords;
     }
 
+    // Fetch activities for a specific date range (start of day to end of day)
     public List<ActivityRecord> getActivitiesByDate(LocalDate date) {
         List<ActivityRecord> activities = new ArrayList<>();
-        // Convert LocalDate to timestamp (start of day)
         long startOfDay = date.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
         long endOfDay = date.atTime(23, 59, 59, 999999999).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
         String query = "SELECT * FROM activity_records WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp DESC";
 
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-            pstmt.setLong(1, startOfDay);  // Start of day timestamp
-            pstmt.setLong(2, endOfDay);    // End of day timestamp
+            pstmt.setLong(1, startOfDay);
+            pstmt.setLong(2, endOfDay);
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    String activity = rs.getString("activity");
-                    int reps = rs.getInt("reps");
-                    double weight = rs.getDouble("weight");
-                    long timestamp = rs.getLong("timestamp");
+                    int exerciseId = rs.getInt("exercise_id");
+                    String query2 = "SELECT name FROM exercises WHERE id = ?";
+                    try (PreparedStatement pstmt2 = connection.prepareStatement(query2)) {
+                        pstmt2.setInt(1, exerciseId);
+                        ResultSet exerciseRs = pstmt2.executeQuery();
+                        String exerciseName = null;
+                        if (exerciseRs.next()) {
+                            exerciseName = exerciseRs.getString("name");
+                        }
 
-                    // Create ActivityRecord object and add it to the list
-                    ActivityRecord record = new ActivityRecord(activity, reps, weight, timestamp);
-                    activities.add(record);
+                        ActivityRecord record = new ActivityRecord(exerciseId, rs.getInt("reps"), rs.getDouble("weight"), rs.getLong("timestamp"));
+                        activities.add(record);
+                    }
                 }
             }
         } catch (SQLException e) {
@@ -107,19 +123,64 @@ public class ActivityDao {
         return activities;
     }
 
+    public List<ActivityRecord> getActivityDataByExercise(String exerciseName) {
+        List<ActivityRecord> activities = new ArrayList<>();
+
+        // Get the exercise_id for the given exerciseName
+        int exerciseId = getExerciseIdByName(exerciseName);
+        if (exerciseId == -1) {
+            logger.warn("Exercise not found: {}", exerciseName);
+            return activities; // Return empty list if the exercise doesn't exist
+        }
+
+        // Fetch activity records for the given exercise_id
+        String query = "SELECT * FROM activity_records WHERE exercise_id = ? ORDER BY timestamp DESC";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setInt(1, exerciseId);  // Set the exercise_id
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    // Create an ActivityRecord using the data from the result set
+                    ActivityRecord record = new ActivityRecord(
+                            rs.getInt("exercise_id"),
+                            rs.getInt("reps"),
+                            rs.getDouble("weight"),
+                            rs.getLong("timestamp")
+                    );
+                    record.setId(rs.getLong("id"));
+                    activities.add(record);
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error retrieving activity data for exercise {}: {}", exerciseName, e.getMessage(), e);
+        }
+
+        return activities;
+    }
+
+
+    // Fetch the personal best activity for a given exercise
     public ActivityRecord getPersonalBest(String activity) {
         ActivityRecord bestRecord = null;
-        String sql = "SELECT * FROM activity_records WHERE activity = ? ORDER BY weight DESC LIMIT 1";
+        String sql = "SELECT * FROM activity_records WHERE exercise_id = ? ORDER BY weight DESC LIMIT 1";
+
+        int exerciseId = getExerciseIdByName(activity);
+
+        if (exerciseId == -1) {
+            return null;  // If exercise doesn't exist, return null
+        }
 
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, activity);
+            pstmt.setInt(1, exerciseId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     bestRecord = new ActivityRecord(
-                            rs.getString("activity"),
+                            exerciseId,  // Use exerciseId
                             rs.getInt("reps"),
                             rs.getDouble("weight"),
-                            rs.getLong("timestamp"));  // Pass settings to constructor
+                            rs.getLong("timestamp")
+                    );
                     bestRecord.setId(rs.getLong("id"));
                 }
             }
@@ -134,53 +195,19 @@ public class ActivityDao {
         return bestRecord;
     }
 
-    // Retrieve all activities from the database, ordered by timestamp descending
-    public List<ActivityRecord> getAllActivitiesOrderedByTimestamp() {
-        List<ActivityRecord> activities = new ArrayList<>();
-        String query = "SELECT * FROM activity_records ORDER BY timestamp DESC";  // Replace 'activities' with your table name
-
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
-            while (rs.next()) {
-                String activity = rs.getString("activity");
-                int reps = rs.getInt("reps");
-                double weight = rs.getDouble("weight");
-                long timestamp = rs.getLong("timestamp");
-
-                // Create ActivityRecord object and add to the list
-                ActivityRecord record = new ActivityRecord(activity, reps, weight, timestamp);
-                activities.add(record);
-            }
-        } catch (SQLException e) {
-            logger.info(e.getMessage());
-        }
-
-        return activities;
-    }
-
-    public List<ActivityRecord> getActivityDataByExercise(String exercise) {
-        List<ActivityRecord> activities = new ArrayList<>();
-        String query = "SELECT * FROM activity_records WHERE activity = ? ORDER BY timestamp DESC";
-
-        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-            pstmt.setString(1, exercise);  // Set the exercise parameter
+    // Helper method to get the exercise_id based on exercise name
+    private int getExerciseIdByName(String exerciseName) {
+        String sql = "SELECT id FROM exercises WHERE name = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, exerciseName);
             try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    String activity = rs.getString("activity");
-                    int reps = rs.getInt("reps");
-                    double weight = rs.getDouble("weight");
-                    long timestamp = rs.getLong("timestamp");
-
-                    // Create ActivityRecord object and add it to the list
-                    ActivityRecord record = new ActivityRecord(activity, reps, weight, timestamp);
-                    activities.add(record);
+                if (rs.next()) {
+                    return rs.getInt("id");
                 }
             }
         } catch (SQLException e) {
-            logger.error("Error retrieving activity data for exercise {}: {}", exercise, e.getMessage(), e);
+            logger.error("Error retrieving exercise ID for {}: {}", exerciseName, e.getMessage(), e);
         }
-
-        return activities;
+        return -1;  // Return -1 if the exercise does not exist
     }
-
 }

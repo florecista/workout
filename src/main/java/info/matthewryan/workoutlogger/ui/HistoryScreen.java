@@ -3,6 +3,7 @@ package info.matthewryan.workoutlogger.ui;
 import info.matthewryan.workoutlogger.persistence.ActivityDao;
 import info.matthewryan.workoutlogger.model.ActivityRecord;
 import info.matthewryan.workoutlogger.persistence.ExerciseDao;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -80,10 +81,17 @@ public class HistoryScreen {
     private BorderPane createHistoryPanel() {
         BorderPane historyPanel = new BorderPane();
 
+        // Create the TableView to display the history of activities
         TableView<ActivityRecord> tableView = new TableView<>();
 
-        TableColumn<ActivityRecord, String> activityColumn = new TableColumn<>("Activity");
-        activityColumn.setCellValueFactory(new PropertyValueFactory<>("activity"));
+        // Define columns
+        TableColumn<ActivityRecord, String> activityColumn = new TableColumn<>("Exercise");
+        activityColumn.setCellValueFactory(param -> {
+            // Use the exerciseId to fetch the exercise name from the database
+            ActivityRecord record = param.getValue();
+            String exerciseName = exerciseDao.getExerciseNameById(record.getExerciseId());  // Fetch exercise name by ID
+            return new SimpleStringProperty(exerciseName);  // Set the exercise name as the cell value
+        });
 
         TableColumn<ActivityRecord, Integer> repsColumn = new TableColumn<>("Reps");
         repsColumn.setCellValueFactory(new PropertyValueFactory<>("reps"));
@@ -94,6 +102,7 @@ public class HistoryScreen {
         TableColumn<ActivityRecord, Long> timestampColumn = new TableColumn<>("Timestamp");
         timestampColumn.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
 
+        // Format timestamp to readable date
         timestampColumn.setCellFactory(col -> {
             return new javafx.scene.control.TableCell<ActivityRecord, Long>() {
                 @Override
@@ -109,8 +118,10 @@ public class HistoryScreen {
             };
         });
 
+        // Add columns to the TableView
         tableView.getColumns().addAll(activityColumn, repsColumn, weightColumn, timestampColumn);
 
+        // Fetch activities from the database, ordered by timestamp descending
         List<ActivityRecord> activities = activityDao.getAllActivitiesOrderedByTimestamp();
         tableView.getItems().setAll(activities);  // Populate the table with activity records
         historyPanel.setCenter(tableView);

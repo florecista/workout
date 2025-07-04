@@ -1,5 +1,6 @@
 package info.matthewryan.workoutlogger.persistence;
 
+import info.matthewryan.workoutlogger.model.Exercise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,40 +32,119 @@ public class ExerciseDao {
         }
     }
 
-    public boolean insertExercise(String exerciseName) {
-        // Check for empty or null exercise name
-        if (exerciseName == null || exerciseName.trim().isEmpty()) {
-            logger.error("Attempted to insert an empty or null exercise name.");
-            return false;  // Reject empty or null names
+    // Insert an exercise into the exercises table
+    public void insertExercise(String exerciseName) {
+        // Check if the exercise already exists
+        String checkQuery = "SELECT id FROM exercises WHERE name = ?";
+        try (PreparedStatement checkStmt = connection.prepareStatement(checkQuery)) {
+            checkStmt.setString(1, exerciseName);
+            ResultSet rs = checkStmt.executeQuery();
+
+            // If the exercise exists, don't insert it again
+            if (rs.next()) {
+                logger.info("Exercise '{}' already exists with ID: {}", exerciseName, rs.getInt("id"));
+                return;  // Exercise already exists, so we don't insert it again
+            }
+        } catch (SQLException e) {
+            logger.error("Error checking if exercise exists: {}", e.getMessage());
+            return;
         }
 
-        String sql = "INSERT OR IGNORE INTO exercises (name) VALUES (?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        // If exercise does not exist, insert it
+        String insertQuery = "INSERT INTO exercises (name) VALUES (?)";
+        try (PreparedStatement pstmt = connection.prepareStatement(insertQuery)) {
             pstmt.setString(1, exerciseName);
-            int affectedRows = pstmt.executeUpdate();
-            return affectedRows > 0;  // If no rows were affected, it means the exercise was ignored
+            pstmt.executeUpdate();
+            logger.info("Inserted exercise: {}", exerciseName);
         } catch (SQLException e) {
-            logger.error("Error inserting exercise: {}", e.getMessage(), e);
-            return false;
+            logger.error("Error inserting exercise: {}", e.getMessage());
         }
     }
 
-    public List<String> getAllExercises() {
-        List<String> exercises = new ArrayList<>();
-        String sql = "SELECT name FROM exercises";
+
+    // Get a list of all exercises
+    public List<Exercise> getAllExercises() {
+        List<Exercise> exercises = new ArrayList<>();
+        String sql = "SELECT * FROM exercises";
 
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                exercises.add(rs.getString("name"));
+                int id = rs.getInt("id");
+                String name = rs.getString("name");
+                exercises.add(new Exercise(id, name));
             }
-            logger.info("Retrieved {} exercises", exercises.size());  // Log the number of exercises
         } catch (SQLException e) {
-            logger.error("Error retrieving exercises: {}", e.getMessage(), e);  // Log error
+            e.printStackTrace();
         }
         return exercises;
     }
+
+    public int getOrCreateExerciseId(String exerciseName) {
+        String selectSql = "SELECT id FROM exercises WHERE name = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(selectSql)) {
+            pstmt.setString(1, exerciseName);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id");  // Exercise exists, return the id
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error checking exercise: {}", e.getMessage(), e);
+        }
+
+        // If exercise doesn't exist, insert it
+        String insertSql = "INSERT INTO exercises (name) VALUES (?)";
+        try (PreparedStatement pstmt = connection.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setString(1, exerciseName);
+            pstmt.executeUpdate();
+
+            // Get the generated ID of the new exercise
+            try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt(1);  // Return the new exercise id
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error inserting exercise: {}", e.getMessage(), e);
+        }
+        return -1;  // In case of error
+    }
+
+    public int getExerciseIdByName(String exerciseName) {
+        String query = "SELECT id FROM exercises WHERE name = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, exerciseName);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id");  // Return the exerciseId
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error getting exercise ID for {}: {}", exerciseName, e.getMessage(), e);
+        }
+        return -1;  // Return -1 if the exercise doesn't exist
+    }
+
+    public String getExerciseNameById(int exerciseId) {
+        String exerciseName = null;
+        String sql = "SELECT name FROM exercises WHERE id = ?";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, exerciseId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    exerciseName = rs.getString("name");
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error retrieving exercise name by id: {}", e.getMessage(), e);
+        }
+
+        return exerciseName;
+    }
+
 
     // ===================== Volume Group Table Methods ==========================
     public void createVolumeGroupTable() {

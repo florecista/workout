@@ -33,7 +33,7 @@
 }
 
 .calendar-current-day-panel {
-    -fx-background-color: -primary-color;
+    -fx-background-color: #2196F3;  /* Using a fixed color for background */
 }
 
 .calendar-weekend-panel {
@@ -46,7 +46,7 @@
 }
 
 .calendar-data-day-pane {
-    -fx-background-color: -primary-color;
+    -fx-background-color: #2196F3;  /* Fixed color for data day pane */
     -fx-background-radius: 100;
 }
 

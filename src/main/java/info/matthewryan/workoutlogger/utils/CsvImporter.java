@@ -4,6 +4,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import info.matthewryan.workoutlogger.model.ActivityRecord;
 import info.matthewryan.workoutlogger.persistence.ActivityDao;
+import info.matthewryan.workoutlogger.persistence.ExerciseDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,34 +15,36 @@ public class CsvImporter {
 
     private static final Logger logger = LoggerFactory.getLogger(CsvImporter.class);
 
-    private final ActivityDao dao;
+    private final ExerciseDao exerciseDao;
+    private final ActivityDao activityDao;
 
     // Constructor to allow dependency injection for easier testing
-    public CsvImporter(ActivityDao dao) {
-        this.dao = dao;
+    public CsvImporter(ExerciseDao exerciseDao, ActivityDao activityDao) {
+        this.exerciseDao = exerciseDao;
+        this.activityDao = activityDao;
     }
 
     // Method to import CSV data from a file
-    public void importCsv(String csvFilePath) {
-        try (CSVReader reader = new CSVReader(new FileReader(csvFilePath))) {
-            // Skip the header row
-            reader.readNext(); // Skipping the header
-
-            String[] nextLine;
-            while ((nextLine = reader.readNext()) != null) {
-                // Ensure insertActivity is only called once for each valid record
-                if (nextLine.length > 4) {  // Ensure the line has enough columns
-                    // Parse and create the ActivityRecord object, pass the settings
-                    ActivityRecord record = new ActivityRecord(nextLine[2], Integer.parseInt(nextLine[3]),
-                            Double.parseDouble(nextLine[4]), parseDateToTimestamp(nextLine[0]));
-                    dao.insertActivity(record);  // This should only be called once per record
-                    logger.info("Inserted record: {}", record);
-                }
-            }
-        } catch (IOException | NumberFormatException | CsvValidationException e) {
-            logger.error("Error processing CSV file: {}", e.getMessage(), e);
-        }
-    }
+//    public void importCsv(String csvFilePath) {
+//        try (CSVReader reader = new CSVReader(new FileReader(csvFilePath))) {
+//            // Skip the header row
+//            reader.readNext(); // Skipping the header
+//
+//            String[] nextLine;
+//            while ((nextLine = reader.readNext()) != null) {
+//                // Ensure insertActivity is only called once for each valid record
+//                if (nextLine.length > 4) {  // Ensure the line has enough columns
+//                    // Parse and create the ActivityRecord object, pass the settings
+//                    ActivityRecord record = new ActivityRecord(nextLine[2], Integer.parseInt(nextLine[3]),
+//                            Double.parseDouble(nextLine[4]), parseDateToTimestamp(nextLine[0]));
+//                    activityDao.insertActivity(record);  // This should only be called once per record
+//                    logger.info("Inserted record: {}", record);
+//                }
+//            }
+//        } catch (IOException | NumberFormatException | CsvValidationException e) {
+//            logger.error("Error processing CSV file: {}", e.getMessage(), e);
+//        }
+//    }
 
     // Method to import a single CSV line
     public void importCsvLine(String line) {
@@ -59,11 +62,14 @@ public class CsvImporter {
             double weightKg = Double.parseDouble(nextLine[4]);
             long timestamp = parseDateToTimestamp(date);
 
-            // Create ActivityRecord object, pass the settings
-            ActivityRecord record = new ActivityRecord(exerciseName, reps, weightKg, timestamp);
+            // Get or create exercise ID
+            int exerciseId = exerciseDao.getOrCreateExerciseId(exerciseName);
+
+            // Create ActivityRecord object, pass the exercise ID and other details
+            ActivityRecord record = new ActivityRecord(exerciseId, reps, weightKg, timestamp);
 
             // Insert into database using DAO
-            dao.insertActivity(record);
+            activityDao.insertActivity(record);
             //logger.info("Inserted record: {}", record);
 
         } catch (Exception e) {

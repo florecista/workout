@@ -60,13 +60,13 @@ public class ScreenStartup extends Application {
         activityDao = new ActivityDao(databaseConnection.getConnection());
         exerciseDao = new ExerciseDao(databaseConnection.getConnection());
 
-        activityDao.createActivityTable();
         exerciseDao.createExerciseTable();
+        activityDao.createActivityTable();
         exerciseDao.createVolumeGroupTable();
         preloadVolumeGroups();
         preloadDefaultExercises();
 
-        csvImporter = new CsvImporter(activityDao);
+        csvImporter = new CsvImporter(exerciseDao, activityDao);
 
         if (loadExistingData) {
             loadExistingDataFromCSV();

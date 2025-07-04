@@ -2,6 +2,7 @@ package info.matthewryan.workoutlogger.utils;
 
 import info.matthewryan.workoutlogger.model.ActivityRecord;
 import info.matthewryan.workoutlogger.persistence.ActivityDao;
+import info.matthewryan.workoutlogger.persistence.ExerciseDao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -15,7 +16,8 @@ import static org.mockito.Mockito.*;
 
 public class CsvImporterTest {
 
-    private ActivityDao dao;
+    private ExerciseDao exerciseDao;
+    private ActivityDao activityDao;
     private CsvImporter csvImporter;
 
     // Statistics variables
@@ -26,11 +28,11 @@ public class CsvImporterTest {
 
     @BeforeEach
     public void setUp() {
-        // Mock the ActivityDao
-        dao = mock(ActivityDao.class);
+        exerciseDao = mock(ExerciseDao.class);
+        activityDao = mock(ActivityDao.class);
 
         // Create an instance of CsvImporter with the mocked dao
-        csvImporter = new CsvImporter(dao);
+        csvImporter = new CsvImporter(exerciseDao, activityDao);
 
         // Initialize statistics variables
         exerciseSet = new HashSet<>();
@@ -98,7 +100,7 @@ public class CsvImporterTest {
         }
 
         // Verify that insertActivity was called the correct number of times
-        verify(dao, times(lineCounter - 1)).insertActivity(Mockito.any(ActivityRecord.class)); // Adjusted to match lineCounter - 1 (because we skip header)
+        verify(activityDao, times(lineCounter - 1)).insertActivity(Mockito.any(ActivityRecord.class)); // Adjusted to match lineCounter - 1 (because we skip header)
 
         // Output statistics
         outputStatistics();

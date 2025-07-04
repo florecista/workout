@@ -1,6 +1,7 @@
 package info.matthewryan.workoutlogger.services;
 
 import info.matthewryan.workoutlogger.model.ActivityRecord;
+import info.matthewryan.workoutlogger.persistence.ExerciseDao;
 import info.matthewryan.workoutlogger.ApplicationSettings;
 
 import java.util.ArrayList;
@@ -14,9 +15,11 @@ public class WorkoutService {
     private String currentSessionId;
     private long sessionStartTime;
     private long sessionEndTime;
+    private ExerciseDao exerciseDao; // Added ExerciseDao to lookup exerciseId
 
-    public WorkoutService(ApplicationSettings settings) {
+    public WorkoutService(ApplicationSettings settings, ExerciseDao exerciseDao) {
         this.settings = settings;
+        this.exerciseDao = exerciseDao;
     }
 
     public void startNewSession() {
@@ -25,15 +28,24 @@ public class WorkoutService {
         sessionHistory.clear(); // Start fresh for each session
     }
 
-    public void recordActivity(String activity, int reps, double weight) {
-        if (activity == null || activity.isEmpty()) {
+    public void recordActivity(String activityName, int reps, double weight) {
+        if (activityName == null || activityName.isEmpty()) {
             throw new IllegalArgumentException("Activity name cannot be null or empty");
         }
         if (reps <= 0 || weight <= 0) {
             throw new IllegalArgumentException("Reps and weight must be positive values");
         }
 
-        ActivityRecord activityRecord = new ActivityRecord(activity, reps, weight, System.currentTimeMillis());
+        // Look up exerciseId from ExerciseDao based on activityName
+        int exerciseId = exerciseDao.getExerciseIdByName(activityName);
+        if (exerciseId == -1) {
+            // If the exercise doesn't exist, create a new exercise record
+            exerciseDao.insertExercise(activityName);
+            exerciseId = exerciseDao.getExerciseIdByName(activityName);  // Fetch the newly inserted ID
+        }
+
+        // Create ActivityRecord using the exerciseId
+        ActivityRecord activityRecord = new ActivityRecord(exerciseId, reps, weight, System.currentTimeMillis());
         sessionHistory.add(activityRecord);
     }
 
@@ -41,23 +53,44 @@ public class WorkoutService {
         return sessionHistory;
     }
 
-    public ActivityRecord getPersonalBest(String activity) {
+    public ActivityRecord getPersonalBest(String activityName) {
+        // Fetch the exerciseId for the given activityName
+        int exerciseId = exerciseDao.getExerciseIdByName(activityName);
+
+        if (exerciseId == -1) {
+            return null;  // If the exercise does not exist in the database
+        }
+
         return sessionHistory.stream()
-                .filter(record -> record.getActivity().equals(activity))
+                .filter(record -> record.getExerciseId() == exerciseId)
                 .max(Comparator.comparingDouble(ActivityRecord::getWeight))
                 .orElse(null);
     }
 
-    public double getTotalReps(String activity) {
+    public double getTotalReps(String activityName) {
+        // Fetch the exerciseId for the given activityName
+        int exerciseId = exerciseDao.getExerciseIdByName(activityName);
+
+        if (exerciseId == -1) {
+            return 0.0;  // If the exercise does not exist in the database
+        }
+
         return sessionHistory.stream()
-                .filter(record -> record.getActivity().equals(activity))
+                .filter(record -> record.getExerciseId() == exerciseId)
                 .mapToInt(ActivityRecord::getReps)
                 .sum();
     }
 
-    public double getAverageWeight(String activity) {
+    public double getAverageWeight(String activityName) {
+        // Fetch the exerciseId for the given activityName
+        int exerciseId = exerciseDao.getExerciseIdByName(activityName);
+
+        if (exerciseId == -1) {
+            return 0.0;  // If the exercise does not exist in the database
+        }
+
         return sessionHistory.stream()
-                .filter(record -> record.getActivity().equals(activity))
+                .filter(record -> record.getExerciseId() == exerciseId)
                 .mapToDouble(ActivityRecord::getWeight)
                 .average()
                 .orElse(0.0);
