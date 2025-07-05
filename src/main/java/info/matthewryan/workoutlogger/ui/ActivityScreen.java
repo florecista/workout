@@ -173,17 +173,6 @@ public class ActivityScreen {
         Button btn9 = new Button("9");
         Button btn4 = new Button("4");
         Button btn5 = new Button("5");
-        btn5.setDisable(false);
-        btn5.setOnMouseClicked(event -> {
-            System.out.println("Button 5 clicked!");
-            TextField focusedField = getFocusedField(setField, unitField, repsField);
-            if (focusedField != null) {
-                focusedField.appendText("5");
-                focusedField.requestFocus();
-            }
-        });
-        btn5.setFocusTraversable(false);
-
         Button btn6 = new Button("6");
         Button btn1 = new Button("1");
         Button btn2 = new Button("2");
@@ -194,17 +183,10 @@ public class ActivityScreen {
         Button btnDelete = new Button();
         btnDelete.setFocusTraversable(false);
         btnDelete.setOnMouseClicked(event -> {
-            // Get the currently focused text field
             TextField focusedField = getFocusedField(setField, unitField, repsField);
-
             if (focusedField != null && focusedField.getText().length() > 0) {
-                // Get the current text in the focused field
                 String currentText = focusedField.getText();
-
-                // Remove the last character (equivalent to a backspace operation)
                 focusedField.setText(currentText.substring(0, currentText.length() - 1));
-
-                // Ensure the focus remains on the same text field after the delete operation
                 focusedField.requestFocus();
             }
         });
@@ -237,7 +219,6 @@ public class ActivityScreen {
 
         // Row 1: ComboBox for Exercise (spans 3 columns)
         grid.add(exerciseComboBox, 0, 0, 3, 1);  // ComboBox spans 3 columns
-
 
         // Row 2: Set, Unit, Reps, Empty
         grid.add(setField, 0, 1);
