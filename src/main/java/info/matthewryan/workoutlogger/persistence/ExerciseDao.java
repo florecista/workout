@@ -42,7 +42,7 @@ public class ExerciseDao {
 
             // If the exercise exists, don't insert it again
             if (rs.next()) {
-                logger.info("Exercise '{}' already exists with ID: {}", exerciseName, rs.getInt("id"));
+                //logger.info("Exercise '{}' already exists with ID: {}", exerciseName, rs.getInt("id"));
                 return;  // Exercise already exists, so we don't insert it again
             }
         } catch (SQLException e) {
