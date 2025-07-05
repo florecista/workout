@@ -11,17 +11,15 @@ import io.fair_acc.chartfx.plugins.DataPointTooltip;
 import io.fair_acc.chartfx.plugins.Zoomer;
 import io.fair_acc.dataset.spi.DefaultErrorDataSet;
 
-import javafx.scene.control.ListCell;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.text.Text;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Button;
-import javafx.scene.layout.Region;
 
 import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -61,8 +59,8 @@ public class ActivityScreen {
         root.setTop(graphPanel);
         root.setBottom(formPanel);
 
-        graphPanel.prefHeightProperty().bind(root.heightProperty().multiply(0.5));  // 50% of screen height
-        formPanel.prefHeightProperty().bind(root.heightProperty().multiply(0.5));   // 50% of screen height
+        graphPanel.prefHeightProperty().bind(root.heightProperty().multiply(0.38));  // 50% of screen height
+        formPanel.prefHeightProperty().bind(root.heightProperty().multiply(0.48));   // 50% of screen height
 
         return root;
     }
@@ -103,9 +101,8 @@ public class ActivityScreen {
         BorderPane formPanel = new BorderPane();
         formPanel.setStyle("-fx-background-color: white;");
 
-        // Create the form elements
-        Text exerciseLabel = new Text("Exercise:");
         ComboBox<Exercise> exerciseComboBox = new ComboBox<>();
+        exerciseComboBox.setStyle("-fx-font-size: 15px;");
         List<Exercise> exercises = exerciseDao.getAllExercises();
 
         // Add a "Select" placeholder as a string
@@ -143,76 +140,133 @@ public class ActivityScreen {
             }
         });
 
-        Text weightLabel = new Text("Weight (kg):");
-        TextField weightField = new TextField();
+        exerciseComboBox.setOnAction(e -> {
+            Exercise selectedExercise = exerciseComboBox.getSelectionModel().getSelectedItem();
+            if (selectedExercise != null && !"Select".equals(selectedExercise)) {
+                updateGraphForExercise(selectedExercise.getName());
+            }
+        });
 
-        Text repsLabel = new Text("Reps:");
+
+        exerciseComboBox.setPrefWidth(Double.MAX_VALUE);
+
+        // Create the text fields for Set, Unit, Reps
+        TextField setField = new TextField();
+        TextField unitField = new TextField();
         TextField repsField = new TextField();
 
-        // Create Save and Clear buttons
-        Button saveButton = new Button("Save");
-        Button clearButton = new Button("Clear");
+        setField.setStyle("-fx-font-size: 20px;");
+        unitField.setStyle("-fx-font-size: 20px;");
+        repsField.setStyle("-fx-font-size: 20px;");
 
-        // Handle Save button click
-        saveButton.setOnAction(event -> {
-            // Collect the data from the form
-            Exercise selectedExercise = exerciseComboBox.getValue();
-            String weightText = weightField.getText();
-            String repsText = repsField.getText();
+        setField.setPrefHeight(50);
+        unitField.setPrefHeight(50);
+        repsField.setPrefHeight(50);
 
-            // Validate inputs (e.g., check if weight and reps are numbers)
-            if (selectedExercise == null || "Select an Exercise".equals(selectedExercise.getName())) {
-                System.out.println("Please select an exercise.");
-                return;
-            }
+        // Create numeric buttons for the second to fourth rows
+        Button btn7 = new Button("7");
+        Button btn8 = new Button("8");
+        Button btn9 = new Button("9");
+        Button btn4 = new Button("4");
+        Button btn5 = new Button("5");
+        Button btn6 = new Button("6");
+        Button btn1 = new Button("1");
+        Button btn2 = new Button("2");
+        Button btn3 = new Button("3");
+        Button btn0 = new Button("0");
 
-            if (weightText.isEmpty() || repsText.isEmpty()) {
-                System.out.println("Please fill in all fields.");
-                return;
-            }
+        // Create Delete and Save buttons with icons (without text)
+        Button btnDelete = new Button();
+        Button btnSave = new Button();
 
-            try {
-                double weight = Double.parseDouble(weightText);
-                int reps = Integer.parseInt(repsText);
+        Image deleteImage = new Image("delete_icon.png");  // Load delete icon
+        Image saveImage = new Image("save_icon.png");  // Load save icon
 
-                // Create a new ActivityRecord and insert it into the database
-                ActivityRecord record = new ActivityRecord(selectedExercise.getId(), reps, weight, System.currentTimeMillis());
-                activityDao.insertActivity(record);  // Insert the activity into the database
+        ImageView deleteImageView = new ImageView(deleteImage);
+        deleteImageView.setFitWidth(30);  // Scale to 30px width
+        deleteImageView.setFitHeight(30);  // Scale to 30px height
+        deleteImageView.setPreserveRatio(true);  // Maintain aspect ratio
 
-                // Inform the user and clear the fields
-                System.out.println("Saved activity: " + selectedExercise.getName() + " " + weight + " kg x " + reps + " reps");
-                clearButton.fire(); // Clear the fields after save
+        ImageView saveImageView = new ImageView(saveImage);
+        saveImageView.setFitWidth(30);  // Scale to 30px width
+        saveImageView.setFitHeight(30);  // Scale to 30px height
+        saveImageView.setPreserveRatio(true);  // Maintain aspect ratio
 
-            } catch (NumberFormatException e) {
-                // Handle invalid number format (e.g., user enters text instead of a number)
-                System.out.println("Invalid input for weight or reps. Please enter valid numbers.");
-            }
-        });
+        btnDelete.setGraphic(deleteImageView);
+        btnSave.setGraphic(saveImageView);
 
-        // Handle Clear button click
-        clearButton.setOnAction(event -> {
-            weightField.clear();
-            repsField.clear();
-        });
+        btnDelete.setStyle("-fx-background-color: red;");
+        btnSave.setStyle("-fx-background-color: green;");
 
-        // Set up the form layout using GridPane for better alignment
+        // Set up the GridPane layout
         GridPane grid = new GridPane();
         grid.setVgap(10);
         grid.setHgap(10);
 
-        // Add labels and components to the GridPane
-        grid.add(exerciseLabel, 0, 0);
-        grid.add(exerciseComboBox, 1, 0);
+        // Row 1: ComboBox for Exercise (spans 3 columns)
+        grid.add(exerciseComboBox, 0, 0, 3, 1);  // ComboBox spans 3 columns
 
-        grid.add(weightLabel, 0, 1);
-        grid.add(weightField, 1, 1);
 
-        grid.add(repsLabel, 0, 2);
-        grid.add(repsField, 1, 2);
+        // Row 2: Set, Unit, Reps, Empty
+        grid.add(setField, 0, 1);
+        grid.add(unitField, 1, 1);
+        grid.add(repsField, 2, 1);
+        grid.add(new Label(""), 3, 1); // Empty cell in the 4th column
 
-        // Add Save and Clear buttons at the bottom of the form
-        grid.add(saveButton, 0, 3);
-        grid.add(clearButton, 1, 3);
+        // Row 3: Buttons for 7, 8, 9, Delete
+        grid.add(btn7, 0, 2);
+        grid.add(btn8, 1, 2);
+        grid.add(btn9, 2, 2);
+        grid.add(btnDelete, 3, 2, 1, 2); // Delete button spans rows 2-3
+
+        // Row 4: Buttons for 4, 5, 6, Empty
+        grid.add(btn4, 0, 3);
+        grid.add(btn5, 1, 3);
+        grid.add(btn6, 2, 3);
+        grid.add(new Label(""), 3, 3); // Empty cell
+
+        // Row 5: Buttons for 1, 2, 3, Save
+        grid.add(btn1, 0, 4);
+        grid.add(btn2, 1, 4);
+        grid.add(btn3, 2, 4);
+        grid.add(btnSave, 3, 4, 1, 2); // Save button spans rows 4-5
+
+        // Row 6: Empty cell, Button for 0, Empty
+        grid.add(new Label(""), 0, 5);  // Empty cell
+        grid.add(btn0, 1, 5);
+        grid.add(new Label(""), 2, 5);  // Empty cell
+
+        // Ensure buttons grow to fill their respective cells
+        GridPane.setHgrow(btn7, Priority.ALWAYS);
+        GridPane.setHgrow(btn8, Priority.ALWAYS);
+        GridPane.setHgrow(btn9, Priority.ALWAYS);
+        GridPane.setHgrow(btn4, Priority.ALWAYS);
+        GridPane.setHgrow(btn5, Priority.ALWAYS);
+        GridPane.setHgrow(btn6, Priority.ALWAYS);
+        GridPane.setHgrow(btn1, Priority.ALWAYS);
+        GridPane.setHgrow(btn2, Priority.ALWAYS);
+        GridPane.setHgrow(btn3, Priority.ALWAYS);
+        GridPane.setHgrow(btn0, Priority.ALWAYS);
+
+        btnDelete.setMinSize(85, 110);
+        btnSave.setMinSize(85, 110);
+
+
+        // Set the preferred size for buttons to make them visually bigger
+        btn7.setMinSize(90, 50);
+        btn8.setMinSize(90, 50);
+        btn9.setMinSize(90, 50);
+        btn4.setMinSize(90, 50);
+        btn5.setMinSize(90, 50);
+        btn6.setMinSize(90, 50);
+        btn1.setMinSize(90, 50);
+        btn2.setMinSize(90, 50);
+        btn3.setMinSize(90, 50);
+        btn0.setMinSize(90, 50);
+
+        // Optional: Adjust column widths and row heights for better layout
+        grid.setPrefWidth(400);
+        grid.setPrefHeight(200);
 
         // Ensure the GridPane's content is laid out properly
         formPanel.setCenter(grid);
@@ -220,12 +274,8 @@ public class ActivityScreen {
         // Add some padding to the formPanel
         formPanel.setPadding(new javafx.geometry.Insets(10));
 
-        // Optional: Add some margin to the form panel (if needed)
-        formPanel.setMinHeight(Region.USE_PREF_SIZE);
-
         return formPanel;
     }
-
 
     private void updateGraphForExercise(String exercise) {
 
@@ -256,7 +306,7 @@ public class ActivityScreen {
 
             xAxis1.setTickLabelFormatter(converter);
             xAxis1.set("Date", "iso");
-            
+
             // Set the X-axis to the chart
             chart.getXAxis().set(xAxis); // Link this new axis to the chart
         } else {
