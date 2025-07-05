@@ -40,6 +40,10 @@ public class ActivityScreen {
     private BorderPane graphPanel;
     private XYChart chart;
 
+    private TextField setField;
+    private TextField unitField;
+    private TextField repsField;
+
     private DefaultNumericAxis xAxis1;
 
     public ActivityScreen(ActivityDao activityDao, ExerciseDao exerciseDao, CustomToolBar toolBar) {
@@ -150,14 +154,9 @@ public class ActivityScreen {
         exerciseComboBox.setPrefWidth(Double.MAX_VALUE);
 
         // Create the text fields for Set, Unit, Reps
-        TextField setField = new TextField();
-        setField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (isNowFocused) {
-                System.out.println("setField gained focus");
-            }
-        });
-        TextField unitField = new TextField();
-        TextField repsField = new TextField();
+        setField = new TextField();
+        unitField = new TextField();
+        repsField = new TextField();
 
         setField.setStyle("-fx-font-size: 20px;");
         unitField.setStyle("-fx-font-size: 20px;");
@@ -168,16 +167,16 @@ public class ActivityScreen {
         repsField.setPrefHeight(50);
 
         // Create numeric buttons for the second to fourth rows
-        Button btn7 = new Button("7");
-        Button btn8 = new Button("8");
-        Button btn9 = new Button("9");
-        Button btn4 = new Button("4");
-        Button btn5 = new Button("5");
-        Button btn6 = new Button("6");
-        Button btn1 = new Button("1");
-        Button btn2 = new Button("2");
-        Button btn3 = new Button("3");
-        Button btn0 = new Button("0");
+        Button btn7 = createButton("7");
+        Button btn8 = createButton("8");
+        Button btn9 = createButton("9");
+        Button btn4 = createButton("4");
+        Button btn5 = createButton("5");
+        Button btn6 = createButton("6");
+        Button btn1 = createButton("1");
+        Button btn2 = createButton("2");
+        Button btn3 = createButton("3");
+        Button btn0 = createButton("0");
 
         // Create Delete and Save buttons with icons (without text)
         Button btnDelete = new Button();
@@ -287,6 +286,21 @@ public class ActivityScreen {
         formPanel.setPadding(new javafx.geometry.Insets(10));
 
         return formPanel;
+    }
+
+    private Button createButton(String text) {
+        Button button = new Button(text);
+        button.setFocusTraversable(false);
+        button.setOnMouseClicked(event -> handleButtonClick(setField, unitField, repsField, text));  // Pass the button text (number)
+        return button;
+    }
+
+    private void handleButtonClick(TextField setField, TextField unitField, TextField repsField, String number) {
+        TextField focusedField = getFocusedField(setField, unitField, repsField);
+        if (focusedField != null) {
+            focusedField.appendText(number);  // Append the number to the focused textfield
+            focusedField.requestFocus();  // Ensure the focus remains on the textfield
+        }
     }
 
     private TextField getFocusedField(TextField setField, TextField unitField, TextField repsField) {
