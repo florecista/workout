@@ -5,14 +5,14 @@ import info.matthewryan.workoutlogger.persistence.ExerciseDao;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 
-public class StartScreen {
+public class WorkoutsScreen {
 
     private ActivityDao activityDao;
     private ExerciseDao exerciseDao;
     private CustomToolBar toolBar;
     private ScreenStartup screenStartup;
 
-    public StartScreen(ActivityDao activityDao, ExerciseDao exerciseDao, CustomToolBar toolBar, ScreenStartup screenStartup) {
+    public WorkoutsScreen(ActivityDao activityDao, ExerciseDao exerciseDao, CustomToolBar toolBar, ScreenStartup screenStartup) {
         this.activityDao = activityDao;
         this.exerciseDao = exerciseDao;
         this.toolBar = toolBar;

@@ -39,7 +39,7 @@ public class ScreenStartup extends Application {
     private ExerciseDao exerciseDao;
     private CustomToolBar toolBar;
 
-    private StartScreen startScreen;
+    private WorkoutsScreen workoutsScreen;
     private ActivityScreen activityScreen;
     private HistoryScreen historyScreen;
     private ExercisesScreen exercisesScreen;
@@ -79,7 +79,7 @@ public class ScreenStartup extends Application {
         // Initialize screens
         toolBar = new CustomToolBar(primaryStage, activityDao, exerciseDao);
         activityScreen = new ActivityScreen(activityDao, exerciseDao, toolBar);
-        startScreen = new StartScreen(activityDao, exerciseDao, toolBar, this);
+        workoutsScreen = new WorkoutsScreen(activityDao, exerciseDao, toolBar, this);
         historyScreen = new HistoryScreen(activityDao, exerciseDao, toolBar);
         exercisesScreen = new ExercisesScreen(exerciseDao, this);
         progressScreen = new ProgressScreen(exerciseDao, this);  // Initialize ProgressScreen
@@ -87,10 +87,10 @@ public class ScreenStartup extends Application {
 
         // Set up a BorderPane to hold all the screens (Deck of screens)
         BorderPane deck = new BorderPane();
-        deck.setCenter(startScreen.getRoot()); // Initially show the Start Screen
+        deck.setCenter(workoutsScreen.getRoot()); // Initially show the Start Screen
 
         // ToolBar Actions
-        toolBar.setOnRoutinesAction(() -> showStartScreen(deck));
+        toolBar.setOnWorkoutsAction(() -> showStartScreen(deck));
         toolBar.setOnHistoryAction(() -> showHistoryScreen(deck));
         toolBar.setOnExercisesAction(() -> showExercisesScreen());
         toolBar.setOnProgressAction(() -> showProgressScreen());
@@ -105,7 +105,7 @@ public class ScreenStartup extends Application {
     }
 
     private void showStartScreen(BorderPane deck) {
-        deck.setCenter(startScreen.getRoot());
+        deck.setCenter(workoutsScreen.getRoot());
         deck.setBottom(toolBar);
     }
 

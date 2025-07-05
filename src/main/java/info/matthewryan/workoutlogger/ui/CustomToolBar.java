@@ -12,20 +12,20 @@ public class CustomToolBar extends ToolBar {
 
     private static final Logger logger = LoggerFactory.getLogger(CustomToolBar.class);
 
-    private Button btnRoutines;
+    private Button btnWorkouts;
     private Button btnHistory;
     private Button btnExercises;
     private Button btnProgress;
 
     public CustomToolBar(Stage primaryStage, ActivityDao activityDao, ExerciseDao exerciseDao) {
         super();
-        btnRoutines = new Button("Routines");
+        btnWorkouts = new Button("Workouts");
         btnHistory = new Button("History");
         btnExercises = new Button("Exercises");
         btnProgress = new Button("Progress");
 
-        // Routines button action
-        btnRoutines.setOnAction(e -> {
+        // Workouts button action
+        btnWorkouts.setOnAction(e -> {
             // This will be handled by ScreenStartup
         });
 
@@ -45,12 +45,12 @@ public class CustomToolBar extends ToolBar {
             // This will be handled by ScreenStartup
         });
 
-        getItems().addAll(btnRoutines, btnProgress, btnHistory, btnExercises);  // Add Progress button between Routines and History
+        getItems().addAll(btnWorkouts, btnProgress, btnHistory, btnExercises);
     }
 
     // Setters to attach actions in ScreenStartup
-    public void setOnRoutinesAction(Runnable action) {
-        btnRoutines.setOnAction(e -> action.run());
+    public void setOnWorkoutsAction(Runnable action) {
+        btnWorkouts.setOnAction(e -> action.run());
     }
 
     public void setOnHistoryAction(Runnable action) {
