@@ -37,8 +37,8 @@ public class ActivityScreen {
     private ExerciseDao exerciseDao;
     private CustomToolBar toolBar;
 
-    private BorderPane graphPanel;  // Declare the graph panel here
-    private XYChart chart;  // Use Chart FX's XYChart
+    private BorderPane graphPanel;
+    private XYChart chart;
 
     private DefaultNumericAxis xAxis1;
 
@@ -124,19 +124,18 @@ public class ActivityScreen {
             }
         });
 
-        // Use StringConverter for selected item (to ensure the placeholder is displayed correctly)
         exerciseComboBox.setConverter(new StringConverter<Exercise>() {
             @Override
             public String toString(Exercise exercise) {
                 if (exercise == null) {
                     return null;
                 }
-                return exercise.getName();  // Display only the name of the exercise
+                return exercise.getName();
             }
 
             @Override
             public Exercise fromString(String string) {
-                return null;  // This is not used in this case, so just return null
+                return null;
             }
         });
 
@@ -152,6 +151,11 @@ public class ActivityScreen {
 
         // Create the text fields for Set, Unit, Reps
         TextField setField = new TextField();
+        setField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (isNowFocused) {
+                System.out.println("setField gained focus");
+            }
+        });
         TextField unitField = new TextField();
         TextField repsField = new TextField();
 
@@ -169,6 +173,17 @@ public class ActivityScreen {
         Button btn9 = new Button("9");
         Button btn4 = new Button("4");
         Button btn5 = new Button("5");
+        btn5.setDisable(false);
+        btn5.setOnMouseClicked(event -> {
+            System.out.println("Button 5 clicked!");
+            TextField focusedField = getFocusedField(setField, unitField, repsField);
+            if (focusedField != null) {
+                focusedField.appendText("5");
+                focusedField.requestFocus();
+            }
+        });
+        btn5.setFocusTraversable(false);
+
         Button btn6 = new Button("6");
         Button btn1 = new Button("1");
         Button btn2 = new Button("2");
@@ -177,6 +192,23 @@ public class ActivityScreen {
 
         // Create Delete and Save buttons with icons (without text)
         Button btnDelete = new Button();
+        btnDelete.setFocusTraversable(false);
+        btnDelete.setOnMouseClicked(event -> {
+            // Get the currently focused text field
+            TextField focusedField = getFocusedField(setField, unitField, repsField);
+
+            if (focusedField != null && focusedField.getText().length() > 0) {
+                // Get the current text in the focused field
+                String currentText = focusedField.getText();
+
+                // Remove the last character (equivalent to a backspace operation)
+                focusedField.setText(currentText.substring(0, currentText.length() - 1));
+
+                // Ensure the focus remains on the same text field after the delete operation
+                focusedField.requestFocus();
+            }
+        });
+
         Button btnSave = new Button();
 
         Image deleteImage = new Image("delete_icon.png");  // Load delete icon
@@ -251,7 +283,6 @@ public class ActivityScreen {
         btnDelete.setMinSize(85, 110);
         btnSave.setMinSize(85, 110);
 
-
         // Set the preferred size for buttons to make them visually bigger
         btn7.setMinSize(90, 50);
         btn8.setMinSize(90, 50);
@@ -275,6 +306,20 @@ public class ActivityScreen {
         formPanel.setPadding(new javafx.geometry.Insets(10));
 
         return formPanel;
+    }
+
+    private TextField getFocusedField(TextField setField, TextField unitField, TextField repsField) {
+        if (setField.isFocused()) {
+            logger.info("setField has focus");
+            return setField;
+        } else if (unitField.isFocused()) {
+            logger.info("unitField has focus");
+            return unitField;
+        } else if (repsField.isFocused()) {
+            logger.info("repsField has focus");
+            return repsField;
+        }
+        return null;
     }
 
     private void updateGraphForExercise(String exercise) {
