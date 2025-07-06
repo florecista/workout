@@ -36,6 +36,7 @@ public class ActivityScreen {
     private ActivityDao activityDao;
     private ExerciseDao exerciseDao;
     private CustomToolBar toolBar;
+    private ScreenStartup screenStartup;
 
     private BorderPane graphPanel;
     private XYChart chart;
@@ -46,10 +47,11 @@ public class ActivityScreen {
 
     private DefaultNumericAxis xAxis1;
 
-    public ActivityScreen(ActivityDao activityDao, ExerciseDao exerciseDao, CustomToolBar toolBar) {
+    public ActivityScreen(ActivityDao activityDao, ExerciseDao exerciseDao, CustomToolBar toolBar, ScreenStartup screenStartup) {
         this.activityDao = activityDao;
         this.exerciseDao = exerciseDao;
         this.toolBar = toolBar;
+        this.screenStartup = screenStartup;
     }
 
     public BorderPane getRoot() {
@@ -235,6 +237,8 @@ public class ActivityScreen {
             System.out.println("Exit Session clicked!");
             // You can call your session end method here, like:
             SessionManager.getInstance().endSession();
+
+            screenStartup.showStartScreen();
         });
 
         // Set up the GridPane layout
