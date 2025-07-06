@@ -3,6 +3,7 @@ package info.matthewryan.workoutlogger.ui;
 import info.matthewryan.workoutlogger.model.ActivityRecord;
 import info.matthewryan.workoutlogger.persistence.ActivityDao;
 import info.matthewryan.workoutlogger.persistence.ExerciseDao;
+import info.matthewryan.workoutlogger.persistence.SessionDao;
 import info.matthewryan.workoutlogger.utils.CsvImporter;
 import info.matthewryan.workoutlogger.utils.DatabaseConnection;
 import javafx.application.Application;
@@ -35,6 +36,7 @@ public class ScreenStartup extends Application {
             "Arms", "Back", "Biceps", "Chest", "Hamstrings", "Legs", "Quads", "Triceps"
     };
 
+    private SessionDao sessionDao;
     private ActivityDao activityDao;
     private ExerciseDao exerciseDao;
     private CustomToolBar toolBar;
@@ -58,8 +60,11 @@ public class ScreenStartup extends Application {
 
         DatabaseConnection databaseConnection = new DatabaseConnection();
 
+        sessionDao = new SessionDao(databaseConnection.getConnection());
         activityDao = new ActivityDao(databaseConnection.getConnection());
         exerciseDao = new ExerciseDao(databaseConnection.getConnection());
+
+        sessionDao.createSessionTable();
 
         exerciseDao.createExerciseTable();
         activityDao.createActivityTable();
@@ -79,7 +84,7 @@ public class ScreenStartup extends Application {
         // Initialize screens
         toolBar = new CustomToolBar(primaryStage, activityDao, exerciseDao);
         activityScreen = new ActivityScreen(activityDao, exerciseDao, toolBar);
-        workoutsScreen = new WorkoutsScreen(activityDao, exerciseDao, toolBar, this);
+        workoutsScreen = new WorkoutsScreen(sessionDao, toolBar, this);
         historyScreen = new HistoryScreen(activityDao, exerciseDao, toolBar);
         exercisesScreen = new ExercisesScreen(exerciseDao, this);
         progressScreen = new ProgressScreen(exerciseDao, this);  // Initialize ProgressScreen

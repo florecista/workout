@@ -218,8 +218,24 @@ public class ActivityScreen {
         btnSave.setGraphic(saveImageView);
 
         btnLog.setStyle("-fx-background-color: grey; -fx-text-fill: white; -fx-font-weight: bold;");
-        btnDelete.setStyle("-fx-background-color: red;");
-        btnSave.setStyle("-fx-background-color: green;");
+        //btnDelete.setStyle("-fx-background-color: #FF6F6F;");  // Softer red
+        //btnSave.setStyle("-fx-background-color: #6DFF6D;");  // Softer green
+        btnDelete.setStyle("-fx-background-color: #FFB6B6;");  // Pastel red
+        btnSave.setStyle("-fx-background-color: #B6FFB6;");  // Pastel green
+
+        Button btnExitSession = new Button();
+        Image exitSessionImage = new Image("exit-session_icon.png");
+        ImageView exitSessionImageView = new ImageView(exitSessionImage);
+        exitSessionImageView.setFitWidth(30);  // Scale to 30px width
+        exitSessionImageView.setFitHeight(30);  // Scale to 30px height
+        btnExitSession.setGraphic(exitSessionImageView);
+        btnExitSession.setOnMouseClicked(event -> {
+            // Handle the action when the Exit Session button is clicked
+            // For example, you can end the session, log out, or navigate to another screen
+            System.out.println("Exit Session clicked!");
+            // You can call your session end method here, like:
+            SessionManager.getInstance().endSession();
+        });
 
         // Set up the GridPane layout
         GridPane grid = new GridPane();
@@ -229,7 +245,7 @@ public class ActivityScreen {
         // Row 1: ComboBox for Exercise (spans 3 columns)
         grid.add(exerciseComboBox, 0, 0, 3, 1);  // ComboBox spans 3 columns
 
-        grid.add(btnLog, 3, 0, 1, 2); // Log button spans rows 0-1
+        grid.add(btnLog, 3, 0, 1, 1); // Log button spans rows 0-1
 
         // Row 2: Set, Unit, Reps, Empty
         grid.add(setField, 0, 1);
@@ -241,7 +257,7 @@ public class ActivityScreen {
         grid.add(btn7, 0, 2);
         grid.add(btn8, 1, 2);
         grid.add(btn9, 2, 2);
-        grid.add(btnDelete, 3, 2, 1, 2); // Delete button spans rows 2-3
+        grid.add(new Label(""), 3, 2, 1, 2); // Delete button spans rows 2-3
 
         // Row 4: Buttons for 4, 5, 6, Empty
         grid.add(btn4, 0, 3);
@@ -253,12 +269,13 @@ public class ActivityScreen {
         grid.add(btn1, 0, 4);
         grid.add(btn2, 1, 4);
         grid.add(btn3, 2, 4);
-        grid.add(btnSave, 3, 4, 1, 2); // Save button spans rows 4-5
+        grid.add(new Label(""), 3, 4); // Empty cell
 
         // Row 6: Empty cell, Button for 0, Empty
-        grid.add(new Label(""), 0, 5);  // Empty cell
+        grid.add(btnDelete, 0, 5);  // Empty cell
         grid.add(btn0, 1, 5);
-        grid.add(new Label(""), 2, 5);  // Empty cell
+        grid.add(btnSave, 2, 5);
+        grid.add(btnExitSession, 3, 5);
 
         // Ensure buttons grow to fill their respective cells
         GridPane.setHgrow(btn7, Priority.ALWAYS);
@@ -271,10 +288,13 @@ public class ActivityScreen {
         GridPane.setHgrow(btn2, Priority.ALWAYS);
         GridPane.setHgrow(btn3, Priority.ALWAYS);
         GridPane.setHgrow(btn0, Priority.ALWAYS);
+        GridPane.setHgrow(btnDelete, Priority.ALWAYS);
+        GridPane.setHgrow(btnSave, Priority.ALWAYS);
 
-        btnLog.setMinSize(85, 88);
-        btnDelete.setMinSize(85, 110);
-        btnSave.setMinSize(85, 110);
+        btnLog.setMinSize(85, 30);
+        //btnDelete.setMinSize(85, 110);
+        //btnSave.setMinSize(85, 110);
+        btnExitSession.setMinSize(85, 50);
 
         // Set the preferred size for buttons to make them visually bigger
         btn7.setMinSize(90, 50);
@@ -286,7 +306,9 @@ public class ActivityScreen {
         btn1.setMinSize(90, 50);
         btn2.setMinSize(90, 50);
         btn3.setMinSize(90, 50);
+        btnDelete.setMinSize(90, 50);
         btn0.setMinSize(90, 50);
+        btnSave.setMinSize(90, 50);
 
         // Optional: Adjust column widths and row heights for better layout
         grid.setPrefWidth(400);
