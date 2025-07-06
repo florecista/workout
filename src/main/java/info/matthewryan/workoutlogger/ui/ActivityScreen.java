@@ -178,6 +178,15 @@ public class ActivityScreen {
         Button btn3 = createButton("3");
         Button btn0 = createButton("0");
 
+        Button btnLog = new Button("See Log");
+        btnLog.setFocusTraversable(false);
+
+        btnLog.setOnMouseClicked(event -> {
+            // Handle the Log button action, for example, log information or display a log window
+            System.out.println("Log button clicked!");
+            // Example: You can log some data or show some log info.
+        });
+
         // Create Delete and Save buttons with icons (without text)
         Button btnDelete = new Button();
         btnDelete.setFocusTraversable(false);
@@ -208,6 +217,7 @@ public class ActivityScreen {
         btnDelete.setGraphic(deleteImageView);
         btnSave.setGraphic(saveImageView);
 
+        btnLog.setStyle("-fx-background-color: grey; -fx-text-fill: white; -fx-font-weight: bold;");
         btnDelete.setStyle("-fx-background-color: red;");
         btnSave.setStyle("-fx-background-color: green;");
 
@@ -218,6 +228,8 @@ public class ActivityScreen {
 
         // Row 1: ComboBox for Exercise (spans 3 columns)
         grid.add(exerciseComboBox, 0, 0, 3, 1);  // ComboBox spans 3 columns
+
+        grid.add(btnLog, 3, 0, 1, 2); // Log button spans rows 0-1
 
         // Row 2: Set, Unit, Reps, Empty
         grid.add(setField, 0, 1);
@@ -260,6 +272,7 @@ public class ActivityScreen {
         GridPane.setHgrow(btn3, Priority.ALWAYS);
         GridPane.setHgrow(btn0, Priority.ALWAYS);
 
+        btnLog.setMinSize(85, 88);
         btnDelete.setMinSize(85, 110);
         btnSave.setMinSize(85, 110);
 
