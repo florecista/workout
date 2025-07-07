@@ -13,16 +13,16 @@ public class CustomToolBar extends ToolBar {
     private static final Logger logger = LoggerFactory.getLogger(CustomToolBar.class);
 
     private Button btnWorkouts;
+    private Button btnProgress;
     private Button btnHistory;
     private Button btnExercises;
-    private Button btnProgress;
 
     public CustomToolBar(Stage primaryStage, ActivityDao activityDao, ExerciseDao exerciseDao) {
         super();
         btnWorkouts = new Button("Workouts");
+        btnProgress = new Button("Progress");
         btnHistory = new Button("History");
         btnExercises = new Button("Exercises");
-        btnProgress = new Button("Progress");
 
         // Workouts button action
         btnWorkouts.setOnAction(e -> {

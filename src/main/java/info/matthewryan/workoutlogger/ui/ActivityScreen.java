@@ -184,9 +184,8 @@ public class ActivityScreen {
         btnLog.setFocusTraversable(false);
 
         btnLog.setOnMouseClicked(event -> {
-            // Handle the Log button action, for example, log information or display a log window
-            System.out.println("Log button clicked!");
-            // Example: You can log some data or show some log info.
+            int currentSessionId = SessionManager.getInstance().getCurrentSession().getId();
+            screenStartup.showSessionActivityLogScreen(currentSessionId);
         });
 
         // Create Delete and Save buttons with icons (without text)

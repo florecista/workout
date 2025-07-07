@@ -29,7 +29,9 @@ public class ActivityDao {
                 "reps INTEGER NOT NULL, " +
                 "weight REAL NOT NULL, " +
                 "timestamp INTEGER NOT NULL, " +
-                "FOREIGN KEY (exercise_id) REFERENCES exercises(id)" +
+                "session_id INTEGER, " +  // New session_id column
+                "FOREIGN KEY (exercise_id) REFERENCES exercises(id), " +
+                "FOREIGN KEY (session_id) REFERENCES session(id) " +  // Foreign key to session table
                 ");";
 
         try (Statement stmt = connection.createStatement()) {
@@ -41,44 +43,38 @@ public class ActivityDao {
     }
 
     // Insert an activity record with exercise_id, reps, weight, and timestamp
-    public void insertActivity(ActivityRecord activityRecord) {
-        String sql = "INSERT INTO activity_records (exercise_id, reps, weight, timestamp) VALUES (?, ?, ?, ?)";
-
+    public void insertActivity(ActivityRecord activityRecord) throws SQLException {
+        String sql = "INSERT INTO activity_records (exercise_id, reps, weight, timestamp, session_id) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setInt(1, activityRecord.getExerciseId());  // Set the exercise_id
+            pstmt.setInt(1, activityRecord.getExerciseId());
             pstmt.setInt(2, activityRecord.getReps());
             pstmt.setDouble(3, activityRecord.getWeight());
             pstmt.setLong(4, activityRecord.getTimestamp());
+            pstmt.setLong(5, activityRecord.getSessionId());  // Set the sessionId
             pstmt.executeUpdate();
-        } catch (SQLException e) {
-            logger.error("Error inserting activity: {}", e.getMessage(), e);
         }
     }
+
 
     // Fetch all activities ordered by timestamp in descending order
     public List<ActivityRecord> getAllActivitiesOrderedByTimestamp() {
         List<ActivityRecord> activityRecords = new ArrayList<>();
-        String sql = "SELECT * FROM activity_records ORDER BY timestamp DESC";  // Order by timestamp descending
+        String sql = "SELECT * FROM activity_records ORDER BY timestamp DESC";
 
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                int exerciseId = rs.getInt("exercise_id");  // Get exercise_id
-                String query = "SELECT name FROM exercises WHERE id = ?";
-                try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-                    pstmt.setInt(1, exerciseId);  // Fetch exercise name by exercise_id
-                    ResultSet exerciseRs = pstmt.executeQuery();
-                    String exerciseName = null;
-                    if (exerciseRs.next()) {
-                        exerciseName = exerciseRs.getString("name");
-                    }
+                int exerciseId = rs.getInt("exercise_id");
+                int sessionId = rs.getInt("session_id");  // Get session_id from the result set
+                int reps = rs.getInt("reps");
+                double weight = rs.getDouble("weight");
+                long timestamp = rs.getLong("timestamp");
 
-                    // Use the exerciseId and other fields to construct the ActivityRecord
-                    ActivityRecord record = new ActivityRecord(exerciseId, rs.getInt("reps"), rs.getDouble("weight"), rs.getLong("timestamp"));
-                    record.setId(rs.getLong("id"));
-                    activityRecords.add(record);  // Add the record to the list
-                }
+                // Create ActivityRecord with sessionId
+                ActivityRecord record = new ActivityRecord(exerciseId, reps, weight, timestamp, sessionId);
+                record.setId(rs.getLong("id"));
+                activityRecords.add(record);
             }
             logger.info("Retrieved {} activities ordered by timestamp.", activityRecords.size());
         } catch (SQLException e) {
@@ -86,6 +82,7 @@ public class ActivityDao {
         }
         return activityRecords;
     }
+
 
     // Fetch activities for a specific date range (start of day to end of day)
     public List<ActivityRecord> getActivitiesByDate(LocalDate date) {
@@ -102,18 +99,14 @@ public class ActivityDao {
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     int exerciseId = rs.getInt("exercise_id");
-                    String query2 = "SELECT name FROM exercises WHERE id = ?";
-                    try (PreparedStatement pstmt2 = connection.prepareStatement(query2)) {
-                        pstmt2.setInt(1, exerciseId);
-                        ResultSet exerciseRs = pstmt2.executeQuery();
-                        String exerciseName = null;
-                        if (exerciseRs.next()) {
-                            exerciseName = exerciseRs.getString("name");
-                        }
+                    int sessionId = rs.getInt("session_id");  // Get session_id from the result set
+                    int reps = rs.getInt("reps");
+                    double weight = rs.getDouble("weight");
+                    long timestamp = rs.getLong("timestamp");
 
-                        ActivityRecord record = new ActivityRecord(exerciseId, rs.getInt("reps"), rs.getDouble("weight"), rs.getLong("timestamp"));
-                        activities.add(record);
-                    }
+                    // Create ActivityRecord with sessionId
+                    ActivityRecord record = new ActivityRecord(exerciseId, reps, weight, timestamp, sessionId);
+                    activities.add(record);
                 }
             }
         } catch (SQLException e) {
@@ -122,6 +115,7 @@ public class ActivityDao {
 
         return activities;
     }
+
 
     public List<ActivityRecord> getActivityDataByExercise(String exerciseName) {
         List<ActivityRecord> activities = new ArrayList<>();
@@ -146,7 +140,8 @@ public class ActivityDao {
                             rs.getInt("exercise_id"),
                             rs.getInt("reps"),
                             rs.getDouble("weight"),
-                            rs.getLong("timestamp")
+                            rs.getLong("timestamp"),
+                            rs.getInt("session_id")
                     );
                     record.setId(rs.getLong("id"));
                     activities.add(record);
@@ -176,10 +171,11 @@ public class ActivityDao {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     bestRecord = new ActivityRecord(
-                            exerciseId,  // Use exerciseId
+                            exerciseId,
                             rs.getInt("reps"),
                             rs.getDouble("weight"),
-                            rs.getLong("timestamp")
+                            rs.getLong("timestamp"),
+                            rs.getInt("session_id")
                     );
                     bestRecord.setId(rs.getLong("id"));
                 }
@@ -210,4 +206,31 @@ public class ActivityDao {
         }
         return -1;  // Return -1 if the exercise does not exist
     }
+
+    public List<ActivityRecord> getActivitiesForSession(int sessionId) {
+        List<ActivityRecord> activities = new ArrayList<>();
+        String sql = "SELECT * FROM activity_records WHERE session_id = ? ORDER BY timestamp ASC";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, sessionId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    int exerciseId = rs.getInt("exercise_id");
+                    int sessionIdFromDb = rs.getInt("session_id");
+                    int reps = rs.getInt("reps");
+                    double weight = rs.getDouble("weight");
+                    long timestamp = rs.getLong("timestamp");
+
+                    // Create ActivityRecord with sessionId
+                    ActivityRecord activityRecord = new ActivityRecord(exerciseId, reps, weight, timestamp, sessionIdFromDb);
+                    activities.add(activityRecord);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();  // Handle this appropriately
+        }
+        return activities;
+    }
+
 }

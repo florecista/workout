@@ -132,6 +132,14 @@ public class ScreenStartup extends Application {
         deck.setBottom(toolBar);
     }
 
+    public void showSessionActivityLogScreen(int currentSessionId) {
+        SessionActivityLogScreen sessionActivityLogScreen = new SessionActivityLogScreen(activityDao, exerciseDao, toolBar, currentSessionId, this);
+        BorderPane sessionActivityLogRoot = sessionActivityLogScreen.getRoot();
+        BorderPane deck = (BorderPane) toolBar.getScene().getRoot();
+        deck.setCenter(sessionActivityLogRoot);
+        deck.setBottom(toolBar);
+    }
+
     private void showHistoryScreen(BorderPane deck) {
         deck.setCenter(historyScreen.getRoot());
         deck.setBottom(toolBar);
