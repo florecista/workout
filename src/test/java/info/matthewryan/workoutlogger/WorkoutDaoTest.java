@@ -73,7 +73,7 @@ class WorkoutDaoTest extends UnitTestBase {
                 "Leg Curl", "Leg Extension"
         };
         for (String exercise : defaultExercises) {
-            exerciseDao.insertExercise(exercise);
+            exerciseDao.insertExercise(exercise, true);
         }
     }
 

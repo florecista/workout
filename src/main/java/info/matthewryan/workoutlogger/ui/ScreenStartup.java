@@ -211,7 +211,7 @@ public class ScreenStartup extends Application {
 
     private void preloadDefaultExercises() {
         for (String exercise : defaultExercises) {
-            exerciseDao.insertExercise(exercise);
+            exerciseDao.insertExercise(exercise, true);
         }
     }
 }

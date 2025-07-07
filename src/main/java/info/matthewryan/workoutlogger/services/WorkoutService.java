@@ -42,7 +42,7 @@ public class WorkoutService {
         int exerciseId = exerciseDao.getExerciseIdByName(activityName);
         if (exerciseId == -1) {
             // If the exercise doesn't exist, create a new exercise record
-            exerciseDao.insertExercise(activityName);
+            exerciseDao.insertExercise(activityName, false);
             exerciseId = exerciseDao.getExerciseIdByName(activityName);  // Fetch the newly inserted ID
         }
 

@@ -34,7 +34,7 @@ public class ExerciseDetailScreen {
         saveButton.setOnAction(e -> {
             String exerciseName = exerciseNameField.getText();
             if (!exerciseName.isEmpty()) {
-                exerciseDao.insertExercise(exerciseName);
+                exerciseDao.insertExercise(exerciseName, false);
                 goBackToExercisesScreen();
             }
         });

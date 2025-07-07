@@ -4,11 +4,13 @@ public class Exercise {
 
     private int id;
     private String name;
+    private boolean factory;
 
     // Constructor
-    public Exercise(int id, String name) {
+    public Exercise(int id, String name, boolean factory) {
         this.id = id;
         this.name = name;
+        this.factory = factory;
     }
 
     // Getters and Setters
@@ -26,6 +28,14 @@ public class Exercise {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isFactory() {
+        return factory;
+    }
+
+    public void setFactory(boolean factory) {
+        this.factory = factory;
     }
 
     @Override

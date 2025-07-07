@@ -112,7 +112,7 @@ public class ActivityScreen {
         List<Exercise> exercises = exerciseDao.getAllExercises();
 
         // Add a "Select" placeholder as a string
-        exerciseComboBox.getItems().add(new Exercise(-1, "Select an Exercise"));  // Add the placeholder
+        exerciseComboBox.getItems().add(new Exercise(-1, "Select an Exercise", false));  // Add the placeholder
         exerciseComboBox.getItems().addAll(exercises);  // Add real exercises
 
         exerciseComboBox.getSelectionModel().selectFirst();  // Select the "Select an Exercise" by default

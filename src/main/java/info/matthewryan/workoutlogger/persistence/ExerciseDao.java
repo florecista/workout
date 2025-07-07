@@ -21,7 +21,8 @@ public class ExerciseDao {
     public void createExerciseTable() {
         String sql = "CREATE TABLE IF NOT EXISTS exercises (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "name TEXT NOT NULL UNIQUE" +
+                "name TEXT NOT NULL UNIQUE, " +
+                "factory BOOLEAN NOT NULL DEFAULT 0" +  // Add factory column with default value 0 (false)
                 ");";
 
         try (Statement stmt = connection.createStatement()) {
@@ -33,7 +34,7 @@ public class ExerciseDao {
     }
 
     // Insert an exercise into the exercises table
-    public void insertExercise(String exerciseName) {
+    public boolean insertExercise(String exerciseName, boolean factory) {
         // Check if the exercise already exists
         String checkQuery = "SELECT id FROM exercises WHERE name = ?";
         try (PreparedStatement checkStmt = connection.prepareStatement(checkQuery)) {
@@ -42,25 +43,28 @@ public class ExerciseDao {
 
             // If the exercise exists, don't insert it again
             if (rs.next()) {
-                //logger.info("Exercise '{}' already exists with ID: {}", exerciseName, rs.getInt("id"));
-                return;  // Exercise already exists, so we don't insert it again
+                // Exercise already exists, so we don't insert it again
+                logger.info("Exercise '{}' already exists, skipping insert.", exerciseName);
+                return false; // Return false to indicate the exercise was not inserted
             }
         } catch (SQLException e) {
             logger.error("Error checking if exercise exists: {}", e.getMessage());
-            return;
+            return false; // Return false if there was an error during the check
         }
 
         // If exercise does not exist, insert it
-        String insertQuery = "INSERT INTO exercises (name) VALUES (?)";
+        String insertQuery = "INSERT INTO exercises (name, factory) VALUES (?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(insertQuery)) {
             pstmt.setString(1, exerciseName);
+            pstmt.setBoolean(2, factory);  // Insert the factory value
             pstmt.executeUpdate();
-            logger.info("Inserted exercise: {}", exerciseName);
+            logger.info("Inserted exercise: {} (Factory: {})", exerciseName, factory);
+            return true; // Return true to indicate the exercise was successfully inserted
         } catch (SQLException e) {
             logger.error("Error inserting exercise: {}", e.getMessage());
+            return false; // Return false if there was an error during the insert
         }
     }
-
 
     // Get a list of all exercises
     public List<Exercise> getAllExercises() {
@@ -73,7 +77,8 @@ public class ExerciseDao {
             while (rs.next()) {
                 int id = rs.getInt("id");
                 String name = rs.getString("name");
-                exercises.add(new Exercise(id, name));
+                boolean factory = rs.getBoolean("factory");
+                exercises.add(new Exercise(id, name, factory));
             }
         } catch (SQLException e) {
             e.printStackTrace();

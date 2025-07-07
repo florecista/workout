@@ -233,4 +233,22 @@ public class ActivityDao {
         return activities;
     }
 
+    public void resetToFactorySettings() {
+        String deleteNonFactoryExercisesSql = "DELETE FROM exercises WHERE factory = FALSE";
+        try (PreparedStatement pstmt = connection.prepareStatement(deleteNonFactoryExercisesSql)) {
+            pstmt.executeUpdate();
+            logger.info("Deleted all non-factory exercises.");
+        } catch (SQLException e) {
+            logger.error("Error deleting non-factory exercises: {}", e.getMessage());
+        }
+
+        // Optionally, delete activity records for non-factory exercises
+        String deleteNonFactoryActivityRecordsSql = "DELETE FROM activity_records WHERE exercise_id NOT IN (SELECT id FROM exercises WHERE factory = TRUE)";
+        try (PreparedStatement pstmt = connection.prepareStatement(deleteNonFactoryActivityRecordsSql)) {
+            pstmt.executeUpdate();
+            logger.info("Deleted activity records for non-factory exercises.");
+        } catch (SQLException e) {
+            logger.error("Error deleting activity records for non-factory exercises: {}", e.getMessage());
+        }
+    }
 }

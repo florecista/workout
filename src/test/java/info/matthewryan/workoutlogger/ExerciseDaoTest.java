@@ -1,11 +1,13 @@
 package info.matthewryan.workoutlogger;
 
+import info.matthewryan.workoutlogger.model.Exercise;
 import info.matthewryan.workoutlogger.persistence.ExerciseDao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.sql.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -45,7 +47,7 @@ class ExerciseDaoTest extends UnitTestBase {
 
     private void preloadDefaultExercises() {
         for (String exercise : defaultExercises) {
-            exerciseDao.insertExercise(exercise);
+            exerciseDao.insertExercise(exercise, false);
         }
     }
 
@@ -74,12 +76,15 @@ class ExerciseDaoTest extends UnitTestBase {
 
         // Add custom exercises
         for (String customExercise : customExercises) {
-            exerciseDao.insertExercise(customExercise);
+            exerciseDao.insertExercise(customExercise, false);
         }
 
         // Verify that the custom exercises have been added
-        List<String> exercises = exerciseDao.getAllExercises();
-        for (String customExercise : customExercises) {
+        List<Exercise> exercises = exerciseDao.getAllExercises();
+        List<String> exerciseNames = exercises.stream()
+                .map(Exercise::getName)
+                .collect(Collectors.toList());
+        for (String customExercise : exerciseNames) {
             assertTrue(exercises.contains(customExercise), "Custom exercise list should contain: " + customExercise);
         }
     }
@@ -137,6 +142,6 @@ class ExerciseDaoTest extends UnitTestBase {
     }
 
     private boolean insertAndCheckExercise(String exerciseName) {
-        return exerciseDao.insertExercise(exerciseName);
+        return exerciseDao.insertExercise(exerciseName, false);
     }
 }
