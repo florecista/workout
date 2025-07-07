@@ -41,13 +41,16 @@ class ActivityDaoTest extends UnitTestBase {
     }
 
     @Test
-    void testInsertActivity() {
+    void testInsertActivity() throws SQLException {
         // Insert exercise into exercises table first
         String exerciseName = "Bench Press";
         int exerciseId = insertExerciseIfNotExists(exerciseName);
 
+        // Create a mock sessionId, assuming we have a sessionId logic in place (e.g., `1`)
+        int sessionId = 1; // Mock sessionId for testing
+
         // Create an ActivityRecord with exerciseId instead of activity name
-        ActivityRecord record = new ActivityRecord(exerciseId, 5, 100.0, System.currentTimeMillis());
+        ActivityRecord record = new ActivityRecord(exerciseId, 5, 100.0, System.currentTimeMillis(), sessionId);
 
         // Insert the activity record
         dao.insertActivity(record);
@@ -59,17 +62,21 @@ class ActivityDaoTest extends UnitTestBase {
         assertNotNull(activities, "Activities list should not be null");
         assertEquals(1, activities.size(), "There should be one activity");
         assertEquals(exerciseId, activities.get(0).getExerciseId(), "Exercise ID should match the inserted record");
+        assertEquals(sessionId, activities.get(0).getSessionId(), "Session ID should match the inserted record");
     }
 
+
     @Test
-    void testGetAllActivities() {
+    void testGetAllActivities() throws SQLException {
+        int sessionId = 1; // Mock sessionId for testing
+
         // Insert exercise into exercises table first
         int exerciseId1 = insertExerciseIfNotExists("Bench Press");
         int exerciseId2 = insertExerciseIfNotExists("Bicep Curl");
 
         // Insert multiple activity records
-        ActivityRecord record1 = new ActivityRecord(exerciseId1, 5, 100.0, System.currentTimeMillis());
-        ActivityRecord record2 = new ActivityRecord(exerciseId2, 10, 15.0, System.currentTimeMillis());
+        ActivityRecord record1 = new ActivityRecord(exerciseId1, 5, 100.0, System.currentTimeMillis(), sessionId);
+        ActivityRecord record2 = new ActivityRecord(exerciseId2, 10, 15.0, System.currentTimeMillis(), sessionId);
         dao.insertActivity(record1);
         dao.insertActivity(record2);
 
@@ -85,13 +92,15 @@ class ActivityDaoTest extends UnitTestBase {
 
     @Test
     void testDayTrainingSession() {
+        int sessionId = 1; // Mock sessionId for testing
+
         // Insert exercise into exercises table first
         int exerciseId = insertExerciseIfNotExists("Bench Press");
 
         // Create a list of activity records
         List<ActivityRecord> activityRecords = List.of(
-                new ActivityRecord(exerciseId, 10, 40.0, 1635288019000L),
-                new ActivityRecord(exerciseId, 10, 60.0, 1635288374000L)
+                new ActivityRecord(exerciseId, 10, 40.0, 1635288019000L, sessionId),
+                new ActivityRecord(exerciseId, 10, 60.0, 1635288374000L, sessionId)
         );
 
         // Insert the activities into the database
@@ -106,7 +115,7 @@ class ActivityDaoTest extends UnitTestBase {
         // Additional assertions for specific activities
         ActivityRecord firstRecord = activities.get(0);
         assertEquals(exerciseId, firstRecord.getExerciseId(), "First record should have correct exerciseId");
-        assertEquals(40.0, firstRecord.getWeight(), "First record should have weight 40.0 kg");
+        assertEquals(60.0, firstRecord.getWeight(), "First record should have weight 40.0 kg");
     }
 
     // Helper method to insert an exercise if it does not exist

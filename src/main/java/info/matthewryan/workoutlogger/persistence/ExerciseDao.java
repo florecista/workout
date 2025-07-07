@@ -35,6 +35,9 @@ public class ExerciseDao {
 
     // Insert an exercise into the exercises table
     public boolean insertExercise(String exerciseName, boolean factory) {
+        if (exerciseName == null || exerciseName.isEmpty())
+            return false;
+
         // Check if the exercise already exists
         String checkQuery = "SELECT id FROM exercises WHERE name = ?";
         try (PreparedStatement checkStmt = connection.prepareStatement(checkQuery)) {

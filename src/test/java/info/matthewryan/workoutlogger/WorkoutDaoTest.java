@@ -36,12 +36,14 @@ class WorkoutDaoTest extends UnitTestBase {
         // Add the "order" column to workout_exercises table if it doesn't exist
         ensureOrderColumnExists();
 
+        // Ensure the exercises table has the 'factory' column
+        ensureFactoryColumnExists();
+
         // Preload default exercises
         preloadDefaultExercises();
 
         // Insert workouts to test
         workoutDao.insertWorkout("Leg Day");
-
     }
 
     private void ensureOrderColumnExists() {
@@ -66,6 +68,28 @@ class WorkoutDaoTest extends UnitTestBase {
         }
     }
 
+    private void ensureFactoryColumnExists() {
+        String sql = "PRAGMA table_info(exercises);";
+        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            boolean factoryColumnExists = false;
+            while (rs.next()) {
+                if ("factory".equals(rs.getString("name"))) {
+                    factoryColumnExists = true;
+                    break;
+                }
+            }
+            if (!factoryColumnExists) {
+                String alterSql = "ALTER TABLE exercises ADD COLUMN factory BOOLEAN DEFAULT 0;";
+                try (Statement alterStmt = connection.createStatement()) {
+                    alterStmt.executeUpdate(alterSql);
+                    logger.info("Added 'factory' column to exercises table.");
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error checking or adding 'factory' column: {}", e.getMessage(), e);
+        }
+    }
+
     private void preloadDefaultExercises() {
         // Insert default exercises (make sure to include 'Squats' here)
         String[] defaultExercises = {
@@ -87,7 +111,7 @@ class WorkoutDaoTest extends UnitTestBase {
         assertNotEquals(squatsId, -1, "Squats should exist in the database");
         assertNotEquals(legPressId, -1, "Leg Press should exist in the database");
 
-        // Add exercises to the workout in a specific order
+        // Add exercises to the workout in a specific order (workoutId, exerciseId, order)
         workoutDao.addExerciseToWorkout(1, squatsId, 1);  // workout 1, squats, order 1
         workoutDao.addExerciseToWorkout(1, legPressId, 2);  // workout 1, leg press, order 2
 
@@ -95,8 +119,8 @@ class WorkoutDaoTest extends UnitTestBase {
         List<String> exercises = workoutDao.getExercisesForWorkout(1);
 
         // Verify exercises are in the correct order
-        assertEquals(2, exercises.size());  // Only two exercises should be added (not three)
-        assertEquals("Squats", exercises.get(0));  // Verify "Squats" is in the first position
-        assertEquals("Leg Press", exercises.get(1));  // Verify "Leg Press" is in the second position
+        assertEquals(2, exercises.size(), "There should be two exercises in the workout.");
+        assertEquals("Squats", exercises.get(0), "First exercise should be 'Squats'");
+        assertEquals("Leg Press", exercises.get(1), "Second exercise should be 'Leg Press'");
     }
 }

@@ -3,12 +3,16 @@ package info.matthewryan.workoutlogger.services;
 import info.matthewryan.workoutlogger.model.ActivityRecord;
 import info.matthewryan.workoutlogger.persistence.ExerciseDao;
 import info.matthewryan.workoutlogger.ApplicationSettings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 public class WorkoutService {
+
+    private static final Logger logger = LoggerFactory.getLogger(WorkoutService.class);
 
     private List<ActivityRecord> sessionHistory = new ArrayList<>();
     private ApplicationSettings settings;
@@ -41,9 +45,13 @@ public class WorkoutService {
         // Look up exerciseId from ExerciseDao based on activityName
         int exerciseId = exerciseDao.getExerciseIdByName(activityName);
         if (exerciseId == -1) {
+            logger.info(activityName + " does not exist in the database, adding it now");
             // If the exercise doesn't exist, create a new exercise record
             exerciseDao.insertExercise(activityName, false);
             exerciseId = exerciseDao.getExerciseIdByName(activityName);  // Fetch the newly inserted ID
+        }
+        else {
+            logger.info(activityName + " id = " + exerciseId);
         }
 
         // Create ActivityRecord using the exerciseId and current sessionId
@@ -116,5 +124,13 @@ public class WorkoutService {
     // Get the current session ID
     public long getCurrentSessionId() {
         return currentSessionId;
+    }
+
+    public long getStartTime() {
+        return sessionStartTime;
+    }
+
+    public long getEndTime() {
+        return sessionEndTime;
     }
 }

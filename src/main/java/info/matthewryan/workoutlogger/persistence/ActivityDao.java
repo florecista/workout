@@ -43,7 +43,7 @@ public class ActivityDao {
     }
 
     // Insert an activity record with exercise_id, reps, weight, and timestamp
-    public void insertActivity(ActivityRecord activityRecord) throws SQLException {
+    public void insertActivity(ActivityRecord activityRecord) {
         String sql = "INSERT INTO activity_records (exercise_id, reps, weight, timestamp, session_id) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, activityRecord.getExerciseId());
@@ -52,6 +52,9 @@ public class ActivityDao {
             pstmt.setLong(4, activityRecord.getTimestamp());
             pstmt.setLong(5, activityRecord.getSessionId());  // Set the sessionId
             pstmt.executeUpdate();
+        }
+        catch (SQLException e) {
+            logger.error("Error creating activity_records table: {}", e.getMessage(), e);
         }
     }
 
