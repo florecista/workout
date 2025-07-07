@@ -2,7 +2,6 @@ package info.matthewryan.workoutlogger.services;
 
 import info.matthewryan.workoutlogger.ApplicationSettings;
 import info.matthewryan.workoutlogger.model.ActivityRecord;
-import info.matthewryan.workoutlogger.model.Exercise;
 import info.matthewryan.workoutlogger.persistence.ExerciseDao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
