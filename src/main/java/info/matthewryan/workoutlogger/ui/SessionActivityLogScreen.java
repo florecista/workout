@@ -33,7 +33,7 @@ public class SessionActivityLogScreen {
 
         // Create the toolbar with a Back button
         HBox toolbar = new HBox(10);
-        Button btnBack = new Button("Back");
+        Button btnBack = new Button("<<");
         btnBack.setStyle("-fx-font-size: 14px; -fx-background-color: lightgray;");
         btnBack.setOnMouseClicked(event -> {
             // Handle the back button click, go back to the ActivityScreen

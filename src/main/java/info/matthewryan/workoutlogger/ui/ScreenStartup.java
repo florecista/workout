@@ -46,6 +46,7 @@ public class ScreenStartup extends Application {
     private HistoryScreen historyScreen;
     private ExercisesScreen exercisesScreen;
     private ProgressScreen progressScreen;
+    private SettingsScreen settingsScreen;
 
     private CsvImporter csvImporter;
 
@@ -87,7 +88,8 @@ public class ScreenStartup extends Application {
         workoutsScreen = new WorkoutsScreen(sessionDao, toolBar, this);
         historyScreen = new HistoryScreen(activityDao, exerciseDao, toolBar);
         exercisesScreen = new ExercisesScreen(exerciseDao, this);
-        progressScreen = new ProgressScreen(exerciseDao, this);  // Initialize ProgressScreen
+        progressScreen = new ProgressScreen(exerciseDao, this);
+        settingsScreen = new SettingsScreen();
 
 
         // Set up a BorderPane to hold all the screens (Deck of screens)
@@ -99,6 +101,7 @@ public class ScreenStartup extends Application {
         toolBar.setOnHistoryAction(() -> showHistoryScreen(deck));
         toolBar.setOnExercisesAction(() -> showExercisesScreen());
         toolBar.setOnProgressAction(() -> showProgressScreen());
+        toolBar.setOnSettingsAction(() -> showSettingsScreen());
 
         // Set up the layout with the toolbar and the current screen
         deck.setBottom(toolBar); // Attach the toolbar to the bottom of BorderPane
@@ -155,6 +158,11 @@ public class ScreenStartup extends Application {
         ExerciseDetailScreen detailScreen = new ExerciseDetailScreen(exerciseDao, this, exerciseName);
         BorderPane deck = (BorderPane) toolBar.getScene().getRoot();
         deck.setCenter(detailScreen.getRoot());
+    }
+
+    public void showSettingsScreen() {
+        BorderPane root = (BorderPane) toolBar.getScene().getRoot();
+        root.setCenter(settingsScreen.getRoot());
     }
 
     private void loadExistingDataFromCSV() {

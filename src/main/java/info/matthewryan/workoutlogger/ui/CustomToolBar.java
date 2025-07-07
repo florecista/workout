@@ -16,13 +16,16 @@ public class CustomToolBar extends ToolBar {
     private Button btnProgress;
     private Button btnHistory;
     private Button btnExercises;
+    private Button btnSettings; // New Settings button
 
     public CustomToolBar(Stage primaryStage, ActivityDao activityDao, ExerciseDao exerciseDao) {
         super();
+
         btnWorkouts = new Button("Workouts");
         btnProgress = new Button("Progress");
         btnHistory = new Button("History");
         btnExercises = new Button("Exercises");
+        btnSettings = new Button("Settings");
 
         // Workouts button action
         btnWorkouts.setOnAction(e -> {
@@ -45,7 +48,15 @@ public class CustomToolBar extends ToolBar {
             // This will be handled by ScreenStartup
         });
 
-        getItems().addAll(btnWorkouts, btnProgress, btnHistory, btnExercises);
+        // Settings button action
+        btnSettings.setOnAction(e -> {
+            // Action for Settings button, for example, show the settings screen
+            logger.info("Settings button clicked");
+            // Add code here to show a Settings screen or popup
+        });
+
+        // Add all buttons to the toolbar, with the Settings button after Exercises
+        getItems().addAll(btnWorkouts, btnProgress, btnHistory, btnExercises, btnSettings);
     }
 
     // Setters to attach actions in ScreenStartup
@@ -63,5 +74,9 @@ public class CustomToolBar extends ToolBar {
 
     public void setOnProgressAction(Runnable action) {
         btnProgress.setOnAction(e -> action.run());
+    }
+
+    public void setOnSettingsAction(Runnable action) {
+        btnSettings.setOnAction(e -> action.run());
     }
 }
